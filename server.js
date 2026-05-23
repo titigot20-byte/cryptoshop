@@ -2,6 +2,18 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
+
+// Dossier uploads
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
+
+const storage = multer.diskStorage({
+  destination: (_, __, cb) => cb(null, UPLOADS_DIR),
+  filename: (_, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
+});
+const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 const app = express();
 const server = http.createServer(app);
@@ -9,10 +21,11 @@ const io = new Server(server);
 
 app.use(express.json());
 app.use(express.static('.'));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
-// ─── État en mémoire (remplace par une DB pour la prod) ───────────────────────
+// ─── État en mémoire ──────────────────────────────────────────────────────────
 const ADMIN = { user: 'admin', pass: 'admin123' };
-const users = {}; // { pseudo: { pass, balance, pendingDeposit } }
+const users = {};
 const products = [
   { id: 1, name: 'Pack Starter', price: 9.99, img: 'https://placehold.co/200x140/111/fff?text=Starter' },
   { id: 2, name: 'Pack Pro',     price: 24.99, img: 'https://placehold.co/200x140/111/fff?text=Pro' },
@@ -52,6 +65,30 @@ app.post('/api/products', (req, res) => {
   products.push(p);
   io.emit('products', products);
   res.json({ ok: true, product: p });
+});
+
+// ─── Upload image ─────────────────────────────────────────────────────────────
+app.post('/api/upload', upload.single('img'), (req, res) => {
+  if (req.headers['x-admin'] !== ADMIN.pass) return res.status(403).end();
+  if (!req.file) return res.json({ ok: false, msg: 'Aucun fichier' });
+  res.json({ ok: true, url: `/uploads/${req.file.filename}` });
+});
+
+// ─── Supprimer produit ────────────────────────────────────────────────────────
+app.delete('/api/products/:id', (req, res) => {
+  if (req.headers['x-admin'] !== ADMIN.pass) return res.status(403).end();
+  const id = parseInt(req.params.id);
+  const idx = products.findIndex(p => p.id === id);
+  if (idx === -1) return res.json({ ok: false });
+  // Supprime le fichier image local si c'est un upload
+  const img = products[idx].img;
+  if (img.startsWith('/uploads/')) {
+    const filePath = path.join(UPLOADS_DIR, path.basename(img));
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  }
+  products.splice(idx, 1);
+  io.emit('products', products);
+  res.json({ ok: true });
 });
 
 // ─── Crypto / Dépôts ─────────────────────────────────────────────────────────
