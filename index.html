@@ -152,7 +152,7 @@
       <div style="margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px">
         <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px">Déclarer un virement en attente :</div>
         <div class="deposit-row">
-          <input id="dep-amount" type="number" placeholder="Montant en €">
+          <input id="dep-amount" type="number" placeholder="Montant en € (min. 20€)">
           <button class="btn" onclick="requestDeposit()">Déclarer</button>
         </div>
         <div id="dep-msg" class="ok" style="display:none">✓ Dépôt enregistré, en attente de validation admin</div>
@@ -173,12 +173,73 @@
 
   <!-- ADMIN -->
   <div id="tab-admin-panel" style="display:none">
-    <h3 style="font-family:'Space Mono',monospace;color:var(--accent);font-size:.9rem;margin-bottom:16px">DÉPÔTS EN ATTENTE</h3>
-    <button class="btn btn-ghost" style="margin-bottom:16px;font-size:.78rem" onclick="loadPending()">↻ Rafraîchir</button>
-    <table>
-      <thead><tr><th>Pseudo</th><th>En attente</th><th>Solde actuel</th><th>Action</th></tr></thead>
-      <tbody id="pending-tbody"></tbody>
-    </table>
+
+    <!-- Sous-onglets admin -->
+    <div style="display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border)">
+      <button class="tab active" id="atab-deposits" onclick="showAdminTab('deposits',this)">💰 Dépôts</button>
+      <button class="tab" id="atab-users" onclick="showAdminTab('users',this)">👤 Utilisateurs</button>
+      <button class="tab" id="atab-promos" onclick="showAdminTab('promos',this)">🎟 Promos</button>
+    </div>
+
+    <!-- Dépôts en attente -->
+    <div id="admin-deposits">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-family:'Space Mono',monospace;color:var(--accent);font-size:.9rem">DÉPÔTS EN ATTENTE</h3>
+        <button class="btn btn-ghost" style="font-size:.78rem" onclick="loadPending()">↻ Rafraîchir</button>
+      </div>
+      <table>
+        <thead><tr><th>Pseudo</th><th>En attente</th><th>Solde actuel</th><th>Action</th></tr></thead>
+        <tbody id="pending-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Gestion utilisateurs -->
+    <div id="admin-users" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-family:'Space Mono',monospace;color:var(--accent);font-size:.9rem">UTILISATEURS</h3>
+        <button class="btn btn-ghost" style="font-size:.78rem" onclick="loadUsers()">↻ Rafraîchir</button>
+      </div>
+      <!-- Ajout manuel de solde -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:16px">
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px;font-family:'Space Mono',monospace">AJOUTER DU SOLDE MANUELLEMENT</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="ab-pseudo" placeholder="Pseudo" style="flex:1;min-width:120px">
+          <input id="ab-amount" type="number" placeholder="Montant €" style="flex:1;min-width:100px">
+          <button class="btn" onclick="addBalance()">Créditer</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Pseudo</th><th>Solde</th><th>En attente</th><th>Action rapide</th></tr></thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Codes promo -->
+    <div id="admin-promos" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3 style="font-family:'Space Mono',monospace;color:var(--accent);font-size:.9rem">CODES PROMO</h3>
+        <button class="btn btn-ghost" style="font-size:.78rem" onclick="loadPromos()">↻ Rafraîchir</button>
+      </div>
+      <!-- Créer promo -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:16px">
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px;font-family:'Space Mono',monospace">CRÉER UN CODE</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <input id="promo-code" placeholder="Code (ex: FLASH20)" style="flex:2;min-width:120px;text-transform:uppercase">
+          <input id="promo-discount" type="number" placeholder="Réduction" style="flex:1;min-width:80px">
+          <select id="promo-type" style="flex:1;min-width:100px;background:#0d0d0d;border:1px solid var(--border);color:var(--text);padding:10px;border-radius:4px">
+            <option value="percent">% remise</option>
+            <option value="fixed">€ fixe</option>
+          </select>
+          <input id="promo-uses" type="number" placeholder="Max utilisations (0=∞)" style="flex:1;min-width:140px">
+        </div>
+        <button class="btn" onclick="createPromo()">Créer le code</button>
+      </div>
+      <table>
+        <thead><tr><th>Code</th><th>Réduction</th><th>Utilisations</th><th>Action</th></tr></thead>
+        <tbody id="promos-tbody"></tbody>
+      </table>
+    </div>
+
   </div>
 </div>
 
@@ -244,16 +305,37 @@ function renderProducts(products){
       <div class="product-info">
         <div class="product-name">${p.name}</div>
         <div class="product-price">${p.price.toFixed(2)} €</div>
-        <button onclick="buyProduct(${p.price})">Acheter</button>
+        <div style="display:flex;gap:4px;margin-top:8px">
+          <input id="promo-${p.id}" placeholder="Code promo" style="flex:1;padding:6px 8px;font-size:.75rem">
+          <button onclick="applyPromo(${p.id},${p.price})" style="padding:6px 8px;font-size:.75rem;background:transparent;border:1px solid var(--accent);color:var(--accent)">OK</button>
+        </div>
+        <div id="promo-msg-${p.id}" style="font-size:.72rem;color:var(--green);margin-top:2px;display:none"></div>
+        <button id="buy-btn-${p.id}" onclick="buyProduct(${p.price},${p.id})" data-price="${p.price}">Acheter</button>
         ${isAdmin ? `<button onclick="deleteProduct(${p.id})" style="margin-top:4px;background:transparent;border:1px solid var(--red);color:var(--red);width:100%">🗑 Supprimer</button>` : ''}
       </div>
     </div>`).join('');
 }
-function buyProduct(price){
-  if(state.balance < price) return toast('Solde insuffisant');
-  state.balance -= price;
+function buyProduct(price, id){
+  const finalPrice = id ? parseFloat(document.getElementById('buy-btn-'+id)?.dataset.price || price) : price;
+  if(state.balance < finalPrice) return toast('Solde insuffisant');
+  state.balance -= finalPrice;
   document.getElementById('nav-balance').textContent = state.balance.toFixed(2);
+  if(id){ document.getElementById('buy-btn-'+id).dataset.price = price; } // reset
   toast('✓ Achat effectué !');
+}
+
+async function applyPromo(id, originalPrice){
+  const code = document.getElementById('promo-'+id).value.trim();
+  if(!code) return;
+  const r = await post('/api/promos/apply', { code, price: originalPrice });
+  const msg = document.getElementById('promo-msg-'+id);
+  const btn = document.getElementById('buy-btn-'+id);
+  if(!r.ok){ msg.style.color='var(--red)'; msg.textContent='✗ '+r.msg; msg.style.display='block'; return; }
+  btn.dataset.price = r.newPrice;
+  btn.textContent = `Acheter — ${r.newPrice.toFixed(2)} €`;
+  msg.style.color='var(--green)';
+  msg.textContent = r.type==='percent' ? `✓ -${r.discount}% appliqué !` : `✓ -${r.discount}€ appliqué !`;
+  msg.style.display='block';
 }
 function toggleAddForm(){
   document.getElementById('add-form').classList.toggle('open');
@@ -315,7 +397,8 @@ function copyAddr(addr,el){
 async function requestDeposit(){
   const amount=document.getElementById('dep-amount').value;
   if(!amount||amount<=0) return toast('Montant invalide');
-  await post('/api/deposit/request',{pseudo:state.pseudo,amount});
+  const r = await post('/api/deposit/request',{pseudo:state.pseudo,amount});
+  if(!r.ok) return toast('⚠ '+r.msg);
   document.getElementById('dep-msg').style.display='block';
   setTimeout(()=>document.getElementById('dep-msg').style.display='none',4000);
 }
@@ -338,6 +421,16 @@ function sendMsg(){
 }
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
+function showAdminTab(name, btn){
+  ['deposits','users','promos'].forEach(t => document.getElementById('admin-'+t).style.display='none');
+  document.querySelectorAll('#tab-admin-panel .tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('admin-'+name).style.display='block';
+  btn.classList.add('active');
+  if(name==='deposits') loadPending();
+  if(name==='users') loadUsers();
+  if(name==='promos') loadPromos();
+}
+
 async function loadPending(){
   const list = await fetch('/api/admin/pending',{headers:{'x-admin':'admin123'}}).then(r=>r.json());
   document.getElementById('pending-tbody').innerHTML = list.length
@@ -345,13 +438,80 @@ async function loadPending(){
         <td><span class="badge">@${u.pseudo}</span></td>
         <td><span class="badge green">+${u.pending.toFixed(2)} €</span></td>
         <td>${u.balance.toFixed(2)} €</td>
-        <td><button class="btn" style="padding:4px 12px;font-size:.78rem" onclick="validate('${u.pseudo}')">Valider</button></td>
+        <td><button class="btn" style="padding:4px 12px;font-size:.78rem" onclick="validate('${u.pseudo}')">✓ Valider</button></td>
       </tr>`).join('')
     : '<tr><td colspan="4" style="color:var(--muted);text-align:center">Aucun dépôt en attente</td></tr>';
 }
+
 async function validate(pseudo){
   await post('/api/admin/validate',{pseudo,adminPass:'admin123'});
   toast(`✓ Dépôt validé pour @${pseudo}`); loadPending();
+}
+
+async function loadUsers(){
+  const list = await fetch('/api/admin/users',{headers:{'x-admin':'admin123'}}).then(r=>r.json());
+  document.getElementById('users-tbody').innerHTML = list.length
+    ? list.map(u=>`<tr>
+        <td><span class="badge">@${u.pseudo}</span></td>
+        <td><span class="badge green">${u.balance.toFixed(2)} €</span></td>
+        <td>${u.pendingDeposit > 0 ? `<span class="badge" style="border-color:#f0c040;color:#f0c040">+${u.pendingDeposit.toFixed(2)} €</span>` : '—'}</td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <input id="quick-amt-${u.pseudo}" type="number" placeholder="€" style="width:70px;padding:4px 6px;font-size:.78rem">
+            <button class="btn" style="padding:4px 10px;font-size:.75rem" onclick="quickCredit('${u.pseudo}')">+ Créditer</button>
+          </div>
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" style="color:var(--muted);text-align:center">Aucun utilisateur</td></tr>';
+}
+
+async function addBalance(){
+  const pseudo = document.getElementById('ab-pseudo').value.trim();
+  const amount = document.getElementById('ab-amount').value;
+  if(!pseudo||!amount) return toast('Pseudo et montant requis');
+  const r = await fetch('/api/admin/addbalance',{method:'POST',headers:{'Content-Type':'application/json','x-admin':'admin123'},body:JSON.stringify({pseudo,amount})}).then(x=>x.json());
+  if(!r.ok) return toast('⚠ '+r.msg);
+  toast(`✓ ${amount}€ crédité à @${pseudo}`); loadUsers();
+}
+
+async function quickCredit(pseudo){
+  const amount = document.getElementById('quick-amt-'+pseudo).value;
+  if(!amount) return toast('Montant requis');
+  const r = await fetch('/api/admin/addbalance',{method:'POST',headers:{'Content-Type':'application/json','x-admin':'admin123'},body:JSON.stringify({pseudo,amount})}).then(x=>x.json());
+  if(!r.ok) return toast('⚠ '+r.msg);
+  toast(`✓ ${amount}€ crédité à @${pseudo}`); loadUsers();
+}
+
+async function loadPromos(){
+  const list = await fetch('/api/promos',{headers:{'x-admin':'admin123'}}).then(r=>r.json());
+  document.getElementById('promos-tbody').innerHTML = list.length
+    ? list.map(p=>`<tr>
+        <td><span class="badge" style="color:var(--accent);border-color:var(--accent)">${p.code}</span></td>
+        <td>${p.type==='percent' ? `-${p.discount}%` : `-${p.discount}€`}</td>
+        <td>${p.uses}${p.maxUses > 0 ? ` / ${p.maxUses}` : ' (∞)'}</td>
+        <td><button class="btn" style="padding:4px 10px;font-size:.75rem;background:transparent;border:1px solid var(--red);color:var(--red)" onclick="deletePromo('${p.code}')">🗑 Supprimer</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" style="color:var(--muted);text-align:center">Aucun code promo</td></tr>';
+}
+
+async function createPromo(){
+  const code = document.getElementById('promo-code').value.trim().toUpperCase();
+  const discount = document.getElementById('promo-discount').value;
+  const type = document.getElementById('promo-type').value;
+  const maxUses = document.getElementById('promo-uses').value;
+  if(!code||!discount) return toast('Code et réduction requis');
+  const r = await fetch('/api/promos',{method:'POST',headers:{'Content-Type':'application/json','x-admin':'admin123'},body:JSON.stringify({code,discount,type,maxUses})}).then(x=>x.json());
+  if(!r.ok) return toast('⚠ '+r.msg);
+  toast(`✓ Code ${code} créé !`);
+  document.getElementById('promo-code').value='';
+  document.getElementById('promo-discount').value='';
+  loadPromos();
+}
+
+async function deletePromo(code){
+  if(!confirm('Supprimer le code '+code+' ?')) return;
+  await fetch('/api/promos/'+code,{method:'DELETE',headers:{'x-admin':'admin123'}});
+  toast('Code supprimé'); loadPromos();
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
@@ -362,7 +522,7 @@ function showTab(name,btn){
   document.getElementById('tab-'+name).style.display='block';
   btn.classList.add('active');
   if(name==='crypto') loadCrypto();
-  if(name==='admin') loadPending();
+  if(name==='admin'){ loadPending(); }
 }
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
