@@ -6,532 +6,561 @@
 <title>CryptoShop</title>
 <script src="/socket.io/socket.io.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;500&display=swap');
-
-  :root{
-    --bg:#0a0a0a; --surface:#111; --border:#222; --accent:#f0c040;
-    --text:#e8e8e8; --muted:#555; --green:#3ddc84; --red:#ff5f5f;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
-  
-  /* ── Layout ── */
-  #app{display:flex;flex-direction:column;min-height:100vh}
-  nav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:10}
-  nav .logo{font-family:'Space Mono',monospace;font-weight:700;color:var(--accent);letter-spacing:-1px;font-size:1.1rem}
-  nav .info{display:flex;align-items:center;gap:12px;font-size:.85rem}
-  .bal{background:#1a1a1a;border:1px solid var(--border);padding:4px 10px;border-radius:4px;font-family:'Space Mono',monospace}
-  main{flex:1;padding:24px;max-width:1100px;margin:0 auto;width:100%}
-
-  /* ── Tabs ── */
-  .tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--border)}
-  .tab{padding:8px 16px;cursor:pointer;font-size:.85rem;border-bottom:2px solid transparent;color:var(--muted);transition:.2s;background:none;border-top:none;border-left:none;border-right:none;color:var(--muted);font-family:'DM Sans',sans-serif}
-  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-
-  /* ── Forms ── */
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;max-width:380px;margin:40px auto}
-  .card h2{font-family:'Space Mono',monospace;font-size:1rem;margin-bottom:20px;color:var(--accent)}
-  input,textarea{width:100%;background:#0d0d0d;border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:.2s}
-  input:focus,textarea:focus{border-color:var(--accent)}
-  .row{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
-  label{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-  btn,button,.btn{background:var(--accent);color:#000;border:none;padding:10px 20px;border-radius:4px;font-weight:700;cursor:pointer;font-size:.85rem;transition:.15s;font-family:'DM Sans',sans-serif}
-  button:hover,.btn:hover{filter:brightness(1.1)}
-  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
-  .err{color:var(--red);font-size:.82rem;margin-top:6px}
-  .ok{color:var(--green);font-size:.82rem;margin-top:6px}
-  .switch{color:var(--muted);font-size:.82rem;margin-top:12px;text-align:center}
-  .switch span{color:var(--accent);cursor:pointer}
-
-  /* ── Products grid ── */
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
-  .product{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:.2s}
-  .product:hover{border-color:var(--accent)}
-  .product img{width:100%;height:120px;object-fit:cover;display:block}
-  .product-info{padding:12px}
-  .product-name{font-size:.9rem;font-weight:500;margin-bottom:4px}
-  .product-price{font-family:'Space Mono',monospace;color:var(--accent);font-size:.85rem}
-  .product button{width:100%;margin-top:10px;background:#1a1a1a;color:var(--text);border:1px solid var(--border)}
-  .product button:hover{border-color:var(--accent);color:var(--accent)}
-
-  /* ── Crypto ── */
-  .crypto-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:12px}
-  .crypto-label{font-family:'Space Mono',monospace;color:var(--accent);font-size:.85rem;margin-bottom:6px}
-  .crypto-addr{font-family:'Space Mono',monospace;font-size:.75rem;color:var(--muted);word-break:break-all;cursor:pointer}
-  .crypto-addr:hover{color:var(--text)}
-  .deposit-row{display:flex;gap:8px;margin-top:12px}
-  .deposit-row input{flex:1}
-
-  /* ── Chat ── */
-  .chat-wrap{display:flex;gap:16px;height:65vh}
-  #messages{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
-  .msg-line{font-size:.85rem;line-height:1.5}
-  .msg-line .pseudo{font-family:'Space Mono',monospace;color:var(--accent);margin-right:6px}
-  .msg-line .ts{color:var(--muted);font-size:.72rem;margin-left:6px}
-  .chat-input{display:flex;gap:8px;margin-top:12px}
-  .chat-input input{flex:1}
-
-  /* ── Admin ── */
-  table{width:100%;border-collapse:collapse;font-size:.85rem}
-  th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left}
-  th{color:var(--muted);font-weight:500;text-transform:uppercase;font-size:.75rem}
-  .badge{background:#1a1a1a;border:1px solid var(--border);padding:2px 8px;border-radius:3px;font-family:'Space Mono',monospace;font-size:.78rem}
-  .badge.green{border-color:var(--green);color:var(--green)}
-
-  /* ── Section header ── */
-  .sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-  .sec-head h3{font-family:'Space Mono',monospace;font-size:.9rem;color:var(--accent)}
-  .add-form{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:20px;display:none}
-  .add-form.open{display:block}
-  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-
-  /* ── Toast ── */
-  #toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#000;padding:10px 16px;border-radius:4px;font-weight:700;font-size:.82rem;opacity:0;pointer-events:none;transition:.3s;z-index:100}
-  #toast.show{opacity:1}
-
-  /* ── Auth section ── */
-  #auth-section{display:flex;align-items:center;justify-content:center;min-height:80vh}
-  #main-section{display:none}
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;500&display=swap');
+:root{--bg:#0a0a0a;--sur:#111;--bor:#222;--acc:#f0c040;--txt:#e8e8e8;--mut:#555;--grn:#3ddc84;--red:#ff5f5f}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid var(--bor);background:var(--sur);position:sticky;top:0;z-index:10}
+.logo{font-family:'Space Mono',monospace;font-weight:700;color:var(--acc);font-size:1.1rem}
+.nav-right{display:flex;align-items:center;gap:10px;font-size:.85rem}
+.bal{background:#1a1a1a;border:1px solid var(--bor);padding:4px 10px;border-radius:4px;font-family:'Space Mono',monospace}
+main{max-width:1100px;margin:0 auto;padding:24px}
+/* tabs */
+.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--bor)}
+.tab{padding:8px 16px;cursor:pointer;font-size:.85rem;border:none;border-bottom:2px solid transparent;background:none;color:var(--mut);font-family:'DM Sans',sans-serif;transition:.2s}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc)}
+/* inputs / buttons */
+input,select,textarea{width:100%;background:#0d0d0d;border:1px solid var(--bor);color:var(--txt);padding:10px 12px;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:.2s}
+input:focus,select:focus{border-color:var(--acc)}
+select option{background:#0d0d0d}
+.btn{background:var(--acc);color:#000;border:none;padding:10px 20px;border-radius:4px;font-weight:700;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;transition:.15s;white-space:nowrap}
+.btn:hover{filter:brightness(1.1)}
+.btn-ghost{background:transparent;border:1px solid var(--bor);color:var(--txt)}
+.btn-red{background:transparent;border:1px solid var(--red);color:var(--red)}
+.lbl{display:block;font-size:.78rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.field{margin-bottom:12px}
+/* auth */
+#auth-wrap{display:flex;align-items:center;justify-content:center;min-height:80vh}
+.card{background:var(--sur);border:1px solid var(--bor);border-radius:8px;padding:28px;max-width:380px;width:100%}
+.card h2{font-family:'Space Mono',monospace;font-size:1rem;color:var(--acc);margin-bottom:20px}
+.err{color:var(--red);font-size:.82rem;margin-top:6px;min-height:18px}
+.switch{color:var(--mut);font-size:.82rem;margin-top:14px;text-align:center}
+.switch span{color:var(--acc);cursor:pointer;text-decoration:underline}
+/* products */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:16px}
+.product-card{background:var(--sur);border:1px solid var(--bor);border-radius:6px;overflow:hidden;transition:.2s}
+.product-card:hover{border-color:var(--acc)}
+.product-card img{width:100%;height:120px;object-fit:cover;display:block}
+.product-info{padding:12px}
+.p-name{font-size:.9rem;font-weight:500;margin-bottom:4px}
+.p-price{font-family:'Space Mono',monospace;color:var(--acc);font-size:.85rem;margin-bottom:10px}
+.promo-row{display:flex;gap:4px;margin-bottom:6px}
+.promo-row input{padding:6px 8px;font-size:.78rem}
+.promo-row .btn{padding:6px 10px;font-size:.78rem}
+.promo-ok{font-size:.75rem;color:var(--grn);margin-bottom:4px;min-height:16px}
+/* section header */
+.sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.sec-head h3{font-family:'Space Mono',monospace;font-size:.9rem;color:var(--acc)}
+/* add form */
+.add-form{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:16px;margin-bottom:20px;display:none}
+.add-form.open{display:block}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* crypto */
+.crypto-card{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:14px;margin-bottom:10px}
+.c-label{font-family:'Space Mono',monospace;color:var(--acc);font-size:.85rem;margin-bottom:6px}
+.c-addr{font-family:'Space Mono',monospace;font-size:.75rem;color:var(--mut);word-break:break-all;cursor:pointer;transition:.2s}
+.c-addr:hover{color:var(--txt)}
+/* chat */
+#chat-box{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:12px;height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.msg{font-size:.85rem;line-height:1.5}
+.msg .who{font-family:'Space Mono',monospace;color:var(--acc);margin-right:6px}
+.msg .when{color:var(--mut);font-size:.72rem;margin-left:6px}
+.chat-send{display:flex;gap:8px}
+/* admin */
+.admin-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--bor)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{padding:10px 12px;border-bottom:1px solid var(--bor);text-align:left}
+th{color:var(--mut);font-weight:500;font-size:.75rem;text-transform:uppercase}
+.badge{display:inline-block;background:#1a1a1a;border:1px solid var(--bor);padding:2px 8px;border-radius:3px;font-family:'Space Mono',monospace;font-size:.78rem}
+.badge-grn{border-color:var(--grn);color:var(--grn)}
+.badge-acc{border-color:var(--acc);color:var(--acc)}
+.admin-box{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:16px;margin-bottom:16px}
+.admin-box .title{font-family:'Space Mono',monospace;font-size:.8rem;color:var(--mut);margin-bottom:12px;text-transform:uppercase}
+.flex-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.flex-row input,.flex-row select{flex:1;min-width:100px}
+/* toast */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--acc);color:#000;padding:10px 18px;border-radius:4px;font-weight:700;font-size:.82rem;opacity:0;pointer-events:none;transition:.3s;z-index:999}
+#toast.show{opacity:1}
 </style>
 </head>
 <body>
-<div id="app">
+
 <nav>
   <div class="logo">⬡ CRYPTOSHOP</div>
-  <div class="info" id="nav-info" style="display:none">
-    <span id="nav-pseudo" style="color:var(--muted);font-size:.82rem"></span>
-    <span class="bal">💰 <span id="nav-balance">0.00</span> €</span>
+  <div class="nav-right" id="nav-right" style="display:none">
+    <span id="nav-pseudo" style="color:var(--mut);font-size:.82rem"></span>
+    <span class="bal">💰 <span id="nav-bal">0.00</span> €</span>
     <button class="btn btn-ghost" style="padding:4px 12px;font-size:.78rem" onclick="logout()">Déco</button>
   </div>
 </nav>
+
 <main>
 
-<!-- ── AUTH ── -->
-<div id="auth-section">
+<!-- AUTH -->
+<div id="auth-wrap">
   <div class="card">
     <h2 id="auth-title">// CONNEXION</h2>
-    <div class="row"><label>Pseudo</label><input id="a-pseudo" placeholder="monpseudo"></div>
-    <div class="row"><label>Mot de passe</label><input id="a-pass" type="password" placeholder="••••••••"></div>
-    <div id="auth-err" class="err"></div>
+    <div class="field"><label class="lbl">Pseudo</label><input id="a-pseudo" placeholder="monpseudo"></div>
+    <div class="field"><label class="lbl">Mot de passe</label><input id="a-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAuth()"></div>
+    <div class="err" id="a-err"></div>
     <button class="btn" style="width:100%;margin-top:8px" onclick="doAuth()">Entrer</button>
-    <div class="switch" id="auth-switch">Pas de compte ? <span onclick="toggleRegister()">Créer un compte</span></div>
+    <div class="switch" id="auth-switch">Pas de compte ? <span onclick="toggleMode()">Créer un compte</span></div>
   </div>
 </div>
 
-<!-- ── MAIN ── -->
-<div id="main-section">
+<!-- APP -->
+<div id="app-wrap" style="display:none">
+
   <div class="tabs">
     <button class="tab active" onclick="showTab('shop',this)">Boutique</button>
     <button class="tab" onclick="showTab('crypto',this)">Recharger</button>
     <button class="tab" onclick="showTab('chat',this)">Chat</button>
-    <button class="tab" id="tab-admin" style="display:none" onclick="showTab('admin',this)">Admin</button>
+    <button class="tab" id="btn-admin-tab" style="display:none" onclick="showTab('admin',this)">Admin</button>
   </div>
 
-  <!-- SHOP -->
+  <!-- BOUTIQUE -->
   <div id="tab-shop">
     <div class="sec-head">
       <h3>PRODUITS</h3>
-      <button class="btn btn-ghost" id="btn-add-product" style="display:none;font-size:.78rem" onclick="toggleAddForm()">+ Ajouter</button>
+      <button class="btn btn-ghost" id="btn-add" style="display:none;font-size:.78rem" onclick="toggleAddForm()">+ Ajouter</button>
     </div>
     <div class="add-form" id="add-form">
-      <div class="form-row">
-        <div class="row"><label>Nom</label><input id="p-name" placeholder="Nom du produit"></div>
-        <div class="row"><label>Prix (€)</label><input id="p-price" type="number" placeholder="9.99"></div>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="field" style="margin:0"><label class="lbl">Nom</label><input id="p-name" placeholder="Nom du produit"></div>
+        <div class="field" style="margin:0"><label class="lbl">Prix (€)</label><input id="p-price" type="number" placeholder="9.99"></div>
       </div>
-      <div class="row"><label>Image (upload ou URL)</label><div style="display:flex;gap:8px;align-items:center"><input type="file" id="p-img-file" accept="image/*" style="flex:1;padding:6px" onchange="previewUpload(this)"><span style="color:var(--muted);font-size:.78rem">ou</span><input id="p-img" placeholder="https://..." style="flex:2"></div><div id="img-preview" style="margin-top:8px;display:none"><img id="img-preview-el" style="height:80px;border-radius:4px;border:1px solid var(--border)"></div></div>
+      <div class="field">
+        <label class="lbl">Image</label>
+        <div class="flex-row">
+          <input type="file" id="p-file" accept="image/*" onchange="previewImg(this)" style="padding:6px">
+          <span style="color:var(--mut);font-size:.78rem;white-space:nowrap">ou URL :</span>
+          <input id="p-url" placeholder="https://...">
+        </div>
+        <div id="img-preview" style="margin-top:8px;display:none"><img id="img-preview-el" style="height:70px;border-radius:4px;border:1px solid var(--bor)"></div>
+      </div>
       <button class="btn" onclick="addProduct()">Ajouter le produit</button>
     </div>
     <div class="grid" id="products-grid"></div>
   </div>
 
-  <!-- CRYPTO -->
+  <!-- RECHARGER -->
   <div id="tab-crypto" style="display:none">
     <div style="max-width:500px">
-      <h3 style="font-family:'Space Mono',monospace;color:var(--accent);font-size:.9rem;margin-bottom:16px">ADRESSES DE RECHARGE</h3>
+      <h3 style="font-family:'Space Mono',monospace;color:var(--acc);font-size:.9rem;margin-bottom:16px">ADRESSES DE RECHARGE</h3>
       <div id="crypto-list"></div>
-      <div style="margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px">
-        <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px">Déclarer un virement en attente :</div>
-        <div class="deposit-row">
-          <input id="dep-amount" type="number" placeholder="Montant en € (min. 20€)">
+      <div class="admin-box" style="margin-top:16px">
+        <div class="title">Déclarer un virement</div>
+        <div class="flex-row">
+          <input id="dep-amt" type="number" placeholder="Montant en € (min. 20€)">
           <button class="btn" onclick="requestDeposit()">Déclarer</button>
         </div>
-        <div id="dep-msg" class="ok" style="display:none">✓ Dépôt enregistré, en attente de validation admin</div>
+        <div id="dep-ok" style="color:var(--grn);font-size:.82rem;margin-top:8px;display:none">✓ Dépôt enregistré — en attente de validation</div>
+        <div id="dep-err" style="color:var(--red);font-size:.82rem;margin-top:8px;display:none"></div>
       </div>
     </div>
   </div>
 
   <!-- CHAT -->
   <div id="tab-chat" style="display:none">
-    <div class="chat-wrap" style="flex-direction:column">
-      <div id="messages"></div>
-      <div class="chat-input">
-        <input id="chat-input" placeholder="Votre message..." onkeydown="if(event.key==='Enter')sendMsg()">
-        <button class="btn" onclick="sendMsg()">Envoyer</button>
-      </div>
+    <div id="chat-box"></div>
+    <div class="chat-send">
+      <input id="chat-inp" placeholder="Votre message..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="btn" onclick="sendMsg()">Envoyer</button>
     </div>
   </div>
 
   <!-- ADMIN -->
-  <div id="tab-admin-panel" style="display:none">
-
-    <!-- Sous-onglets admin -->
-    <div style="display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border)">
-      <button class="tab active" id="atab-deposits" onclick="showAdminTab('deposits',this)">💰 Dépôts</button>
-      <button class="tab" id="atab-users" onclick="showAdminTab('users',this)">👤 Utilisateurs</button>
-      <button class="tab" id="atab-promos" onclick="showAdminTab('promos',this)">🎟 Promos</button>
+  <div id="tab-admin" style="display:none">
+    <div class="admin-tabs tabs">
+      <button class="tab active" id="atab-dep" onclick="showAdminTab('deposits',this)">💰 Dépôts</button>
+      <button class="tab" id="atab-usr" onclick="showAdminTab('users',this)">👤 Utilisateurs</button>
+      <button class="tab" id="atab-prm" onclick="showAdminTab('promos',this)">🎟 Promos</button>
     </div>
 
-    <!-- Dépôts en attente -->
+    <!-- Dépôts -->
     <div id="admin-deposits">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <h3 style="font-family:'Space Mono',monospace;color:var(--accent);font-size:.9rem">DÉPÔTS EN ATTENTE</h3>
+      <div class="sec-head">
+        <h3>DÉPÔTS EN ATTENTE</h3>
         <button class="btn btn-ghost" style="font-size:.78rem" onclick="loadPending()">↻ Rafraîchir</button>
       </div>
       <table>
         <thead><tr><th>Pseudo</th><th>En attente</th><th>Solde actuel</th><th>Action</th></tr></thead>
-        <tbody id="pending-tbody"></tbody>
+        <tbody id="t-pending"></tbody>
       </table>
     </div>
 
-    <!-- Gestion utilisateurs -->
+    <!-- Utilisateurs -->
     <div id="admin-users" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <h3 style="font-family:'Space Mono',monospace;color:var(--accent);font-size:.9rem">UTILISATEURS</h3>
-        <button class="btn btn-ghost" style="font-size:.78rem" onclick="loadUsers()">↻ Rafraîchir</button>
-      </div>
-      <!-- Ajout manuel de solde -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:16px">
-        <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px;font-family:'Space Mono',monospace">AJOUTER DU SOLDE MANUELLEMENT</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <input id="ab-pseudo" placeholder="Pseudo" style="flex:1;min-width:120px">
-          <input id="ab-amount" type="number" placeholder="Montant €" style="flex:1;min-width:100px">
+      <div class="admin-box">
+        <div class="title">Ajouter du solde manuellement</div>
+        <div class="flex-row">
+          <input id="ab-pseudo" placeholder="Pseudo">
+          <input id="ab-amt" type="number" placeholder="Montant €">
           <button class="btn" onclick="addBalance()">Créditer</button>
         </div>
       </div>
+      <div class="sec-head">
+        <h3>TOUS LES UTILISATEURS</h3>
+        <button class="btn btn-ghost" style="font-size:.78rem" onclick="loadUsers()">↻ Rafraîchir</button>
+      </div>
       <table>
-        <thead><tr><th>Pseudo</th><th>Solde</th><th>En attente</th><th>Action rapide</th></tr></thead>
-        <tbody id="users-tbody"></tbody>
+        <thead><tr><th>Pseudo</th><th>Solde</th><th>En attente</th><th>Crédit rapide</th></tr></thead>
+        <tbody id="t-users"></tbody>
       </table>
     </div>
 
-    <!-- Codes promo -->
+    <!-- Promos -->
     <div id="admin-promos" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <h3 style="font-family:'Space Mono',monospace;color:var(--accent);font-size:.9rem">CODES PROMO</h3>
-        <button class="btn btn-ghost" style="font-size:.78rem" onclick="loadPromos()">↻ Rafraîchir</button>
-      </div>
-      <!-- Créer promo -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:16px">
-        <div style="font-size:.82rem;color:var(--muted);margin-bottom:10px;font-family:'Space Mono',monospace">CRÉER UN CODE</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-          <input id="promo-code" placeholder="Code (ex: FLASH20)" style="flex:2;min-width:120px;text-transform:uppercase">
-          <input id="promo-discount" type="number" placeholder="Réduction" style="flex:1;min-width:80px">
-          <select id="promo-type" style="flex:1;min-width:100px;background:#0d0d0d;border:1px solid var(--border);color:var(--text);padding:10px;border-radius:4px">
+      <div class="admin-box">
+        <div class="title">Créer un code promo</div>
+        <div class="flex-row" style="margin-bottom:8px">
+          <input id="pr-code" placeholder="Code (ex: FLASH20)" style="text-transform:uppercase">
+          <input id="pr-discount" type="number" placeholder="Réduction">
+          <select id="pr-type">
             <option value="percent">% remise</option>
             <option value="fixed">€ fixe</option>
           </select>
-          <input id="promo-uses" type="number" placeholder="Max utilisations (0=∞)" style="flex:1;min-width:140px">
+          <input id="pr-uses" type="number" placeholder="Max utilisations (0=∞)">
+          <button class="btn" onclick="createPromo()">Créer</button>
         </div>
-        <button class="btn" onclick="createPromo()">Créer le code</button>
+      </div>
+      <div class="sec-head">
+        <h3>CODES ACTIFS</h3>
+        <button class="btn btn-ghost" style="font-size:.78rem" onclick="loadPromos()">↻ Rafraîchir</button>
       </div>
       <table>
         <thead><tr><th>Code</th><th>Réduction</th><th>Utilisations</th><th>Action</th></tr></thead>
-        <tbody id="promos-tbody"></tbody>
+        <tbody id="t-promos"></tbody>
       </table>
     </div>
-
   </div>
-</div>
 
-</main>
 </div>
+</main>
+
 <div id="toast"></div>
 
 <script>
 const socket = io();
-let state = { pseudo: null, role: null, balance: 0 };
-let isRegister = false;
+let S = { pseudo: null, role: null, balance: 0 };
+let isReg = false;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-function toggleRegister(){
-  isRegister = !isRegister;
-  document.getElementById('auth-title').textContent = isRegister ? '// INSCRIPTION' : '// CONNEXION';
-  document.getElementById('auth-switch').innerHTML = isRegister
-    ? 'Déjà un compte ? <span onclick="toggleRegister()">Se connecter</span>'
-    : 'Pas de compte ? <span onclick="toggleRegister()">Créer un compte</span>';
+function toggleMode(){
+  isReg = !isReg;
+  document.getElementById('auth-title').textContent = isReg ? '// INSCRIPTION' : '// CONNEXION';
+  document.getElementById('auth-switch').innerHTML = isReg
+    ? 'Déjà un compte ? <span onclick="toggleMode()">Se connecter</span>'
+    : 'Pas de compte ? <span onclick="toggleMode()">Créer un compte</span>';
 }
 
 async function doAuth(){
   const pseudo = document.getElementById('a-pseudo').value.trim();
   const pass   = document.getElementById('a-pass').value;
-  if(!pseudo||!pass) return setErr('Remplis tous les champs');
-  const url = isRegister ? '/api/register' : '/api/login';
-  const r = await post(url,{pseudo,pass});
-  if(!r.ok) return setErr(r.msg||'Erreur');
-  if(isRegister){ toast('Compte créé !'); toggleRegister(); return; }
-  state = { pseudo, role: r.role, balance: r.balance||0 };
-  document.getElementById('auth-section').style.display='none';
-  document.getElementById('main-section').style.display='block';
-  document.getElementById('nav-info').style.display='flex';
-  document.getElementById('nav-pseudo').textContent = `@${pseudo}`;
-  document.getElementById('nav-balance').textContent = state.balance.toFixed(2);
-  if(r.role==='admin'){
-    document.getElementById('tab-admin').style.display='inline-block';
-    document.getElementById('btn-add-product').style.display='inline-block';
-    loadPending();
+  document.getElementById('a-err').textContent = '';
+  if(!pseudo || !pass) return document.getElementById('a-err').textContent = 'Remplis tous les champs';
+  const r = await api('POST', isReg ? '/api/register' : '/api/login', {pseudo, pass});
+  if(!r.ok) return document.getElementById('a-err').textContent = r.msg || 'Erreur';
+  if(isReg){ toast('Compte créé ! Connecte-toi.'); toggleMode(); return; }
+  S = { pseudo, role: r.role, balance: r.balance || 0 };
+  document.getElementById('auth-wrap').style.display = 'none';
+  document.getElementById('app-wrap').style.display = 'block';
+  document.getElementById('nav-right').style.display = 'flex';
+  document.getElementById('nav-pseudo').textContent = '@' + pseudo;
+  document.getElementById('nav-bal').textContent = S.balance.toFixed(2);
+  if(S.role === 'admin'){
+    document.getElementById('btn-admin-tab').style.display = 'inline-block';
+    document.getElementById('btn-add').style.display = 'inline-block';
   }
   loadProducts();
 }
 
-function setErr(msg){ document.getElementById('auth-err').textContent=msg; }
-
 function logout(){
-  state={pseudo:null,role:null,balance:0};
-  document.getElementById('auth-section').style.display='flex';
-  document.getElementById('main-section').style.display='none';
-  document.getElementById('nav-info').style.display='none';
+  S = { pseudo: null, role: null, balance: 0 };
+  document.getElementById('auth-wrap').style.display = 'flex';
+  document.getElementById('app-wrap').style.display = 'none';
+  document.getElementById('nav-right').style.display = 'none';
+  document.getElementById('a-pseudo').value = '';
+  document.getElementById('a-pass').value = '';
 }
 
-// ── Products ──────────────────────────────────────────────────────────────────
-async function loadProducts(){
-  const products = await get('/api/products');
-  renderProducts(products);
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function showTab(name, btn){
+  ['shop','crypto','chat','admin'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = 'none';
+  });
+  document.querySelectorAll('.tabs:first-of-type .tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).style.display = 'block';
+  btn.classList.add('active');
+  if(name === 'crypto') loadCrypto();
+  if(name === 'admin'){ loadPending(); }
 }
-function renderProducts(products){
-  const isAdmin = state.role === 'admin';
-  document.getElementById('products-grid').innerHTML = products.map(p=>`
-    <div class="product">
+
+function showAdminTab(name, btn){
+  ['deposits','users','promos'].forEach(t => {
+    document.getElementById('admin-'+t).style.display = 'none';
+  });
+  document.querySelectorAll('.admin-tabs .tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('admin-'+name).style.display = 'block';
+  btn.classList.add('active');
+  if(name === 'deposits') loadPending();
+  if(name === 'users') loadUsers();
+  if(name === 'promos') loadPromos();
+}
+
+// ── Produits ──────────────────────────────────────────────────────────────────
+async function loadProducts(){
+  const list = await api('GET', '/api/products');
+  renderProducts(list);
+}
+
+function renderProducts(list){
+  document.getElementById('products-grid').innerHTML = list.map(p => `
+    <div class="product-card">
       <img src="${p.img}" alt="${p.name}" onerror="this.src='https://placehold.co/200x140/111/555?text=?'">
       <div class="product-info">
-        <div class="product-name">${p.name}</div>
-        <div class="product-price">${p.price.toFixed(2)} €</div>
-        <div style="display:flex;gap:4px;margin-top:8px">
-          <input id="promo-${p.id}" placeholder="Code promo" style="flex:1;padding:6px 8px;font-size:.75rem">
-          <button onclick="applyPromo(${p.id},${p.price})" style="padding:6px 8px;font-size:.75rem;background:transparent;border:1px solid var(--accent);color:var(--accent)">OK</button>
+        <div class="p-name">${p.name}</div>
+        <div class="p-price" id="price-display-${p.id}">${p.price.toFixed(2)} €</div>
+        <div class="promo-row">
+          <input id="promo-inp-${p.id}" placeholder="Code promo">
+          <button class="btn" onclick="applyPromo(${p.id},${p.price})">OK</button>
         </div>
-        <div id="promo-msg-${p.id}" style="font-size:.72rem;color:var(--green);margin-top:2px;display:none"></div>
-        <button id="buy-btn-${p.id}" onclick="buyProduct(${p.price},${p.id})" data-price="${p.price}">Acheter</button>
-        ${isAdmin ? `<button onclick="deleteProduct(${p.id})" style="margin-top:4px;background:transparent;border:1px solid var(--red);color:var(--red);width:100%">🗑 Supprimer</button>` : ''}
+        <div class="promo-ok" id="promo-msg-${p.id}"></div>
+        <button class="btn" id="buy-btn-${p.id}" data-price="${p.price}" onclick="buyProduct(${p.id},${p.price})" style="width:100%">Acheter</button>
+        ${S.role === 'admin' ? `<button class="btn btn-red" style="width:100%;margin-top:6px" onclick="deleteProduct(${p.id})">🗑 Supprimer</button>` : ''}
       </div>
     </div>`).join('');
 }
-function buyProduct(price, id){
-  const finalPrice = id ? parseFloat(document.getElementById('buy-btn-'+id)?.dataset.price || price) : price;
-  if(state.balance < finalPrice) return toast('Solde insuffisant');
-  state.balance -= finalPrice;
-  document.getElementById('nav-balance').textContent = state.balance.toFixed(2);
-  if(id){ document.getElementById('buy-btn-'+id).dataset.price = price; } // reset
-  toast('✓ Achat effectué !');
-}
 
-async function applyPromo(id, originalPrice){
-  const code = document.getElementById('promo-'+id).value.trim();
-  if(!code) return;
-  const r = await post('/api/promos/apply', { code, price: originalPrice });
-  const msg = document.getElementById('promo-msg-'+id);
-  const btn = document.getElementById('buy-btn-'+id);
-  if(!r.ok){ msg.style.color='var(--red)'; msg.textContent='✗ '+r.msg; msg.style.display='block'; return; }
-  btn.dataset.price = r.newPrice;
-  btn.textContent = `Acheter — ${r.newPrice.toFixed(2)} €`;
-  msg.style.color='var(--green)';
-  msg.textContent = r.type==='percent' ? `✓ -${r.discount}% appliqué !` : `✓ -${r.discount}€ appliqué !`;
-  msg.style.display='block';
-}
+socket.on('products_update', renderProducts);
+
 function toggleAddForm(){
   document.getElementById('add-form').classList.toggle('open');
 }
-async function previewUpload(input){
-  if(!input.files[0]) return;
-  const url = URL.createObjectURL(input.files[0]);
-  document.getElementById('img-preview-el').src = url;
-  document.getElementById('img-preview').style.display = 'block';
-  document.getElementById('p-img').value = '';
-}
 
-async function previewUpload(input){
+function previewImg(input){
   if(!input.files[0]) return;
-  const url = URL.createObjectURL(input.files[0]);
-  document.getElementById('img-preview-el').src = url;
+  document.getElementById('img-preview-el').src = URL.createObjectURL(input.files[0]);
   document.getElementById('img-preview').style.display = 'block';
-  document.getElementById('p-img').value = '';
+  document.getElementById('p-url').value = '';
 }
 
 async function addProduct(){
-  const name=document.getElementById('p-name').value.trim();
-  const price=document.getElementById('p-price').value;
-  const fileInput=document.getElementById('p-img-file');
-  let img=document.getElementById('p-img').value.trim();
-  if(!name||!price) return toast('Nom et prix requis');
-  if(fileInput.files[0]){
-    const fd=new FormData(); fd.append('img',fileInput.files[0]);
-    const r=await fetch('/api/upload',{method:'POST',headers:{'x-admin':'admin123'},body:fd}).then(x=>x.json());
-    if(!r.ok) return toast('Erreur upload');
-    img=r.url;
+  const name  = document.getElementById('p-name').value.trim();
+  const price = document.getElementById('p-price').value;
+  const file  = document.getElementById('p-file').files[0];
+  let   img   = document.getElementById('p-url').value.trim();
+  if(!name || !price) return toast('Nom et prix requis');
+  if(file){
+    const fd = new FormData();
+    fd.append('img', file);
+    const r = await fetch('/api/upload', { method:'POST', headers:{'x-admin':'admin123'}, body: fd }).then(x => x.json());
+    if(!r.ok) return toast('Erreur upload image');
+    img = r.url;
   }
-  await post('/api/products',{name,price,img,adminPass:'admin123'});
-  document.getElementById('p-img-file').value='';
-  document.getElementById('img-preview').style.display='none';
-  toggleAddForm(); loadProducts(); toast('Produit ajouté');
+  const r = await api('POST', '/api/products', { name, price, img }, true);
+  if(!r.ok) return toast('Erreur : ' + r.msg);
+  document.getElementById('p-name').value = '';
+  document.getElementById('p-price').value = '';
+  document.getElementById('p-file').value = '';
+  document.getElementById('p-url').value = '';
+  document.getElementById('img-preview').style.display = 'none';
+  document.getElementById('add-form').classList.remove('open');
+  toast('✓ Produit ajouté !');
+  loadProducts();
 }
 
 async function deleteProduct(id){
   if(!confirm('Supprimer ce produit ?')) return;
-  await fetch('/api/products/'+id,{method:'DELETE',headers:{'x-admin':'admin123'}});
-  loadProducts(); toast('Produit supprimé');
+  await fetch('/api/products/'+id, { method:'DELETE', headers:{'x-admin':'admin123'} });
+  toast('Produit supprimé'); loadProducts();
+}
+
+function buyProduct(id, originalPrice){
+  const btn = document.getElementById('buy-btn-'+id);
+  const finalPrice = parseFloat(btn.dataset.price);
+  if(S.balance < finalPrice) return toast('⚠ Solde insuffisant');
+  S.balance -= finalPrice;
+  document.getElementById('nav-bal').textContent = S.balance.toFixed(2);
+  btn.dataset.price = originalPrice; // reset promo
+  btn.textContent = 'Acheter';
+  document.getElementById('price-display-'+id).textContent = originalPrice.toFixed(2) + ' €';
+  document.getElementById('promo-msg-'+id).textContent = '';
+  document.getElementById('promo-inp-'+id).value = '';
+  toast('✓ Achat effectué !');
+}
+
+async function applyPromo(id, originalPrice){
+  const code = document.getElementById('promo-inp-'+id).value.trim();
+  const msg  = document.getElementById('promo-msg-'+id);
+  const btn  = document.getElementById('buy-btn-'+id);
+  if(!code) return;
+  const r = await api('POST', '/api/promos/apply', { code, price: originalPrice });
+  if(!r.ok){ msg.style.color='var(--red)'; msg.textContent='✗ '+r.msg; return; }
+  btn.dataset.price = r.newPrice;
+  btn.textContent = `Acheter — ${r.newPrice.toFixed(2)} €`;
+  document.getElementById('price-display-'+id).textContent = r.newPrice.toFixed(2) + ' €';
+  msg.style.color = 'var(--grn)';
+  msg.textContent = r.type==='percent' ? `✓ -${r.discount}% appliqué !` : `✓ -${r.discount}€ appliqué !`;
 }
 
 // ── Crypto ────────────────────────────────────────────────────────────────────
 async function loadCrypto(){
-  const c = await get('/api/crypto');
-  document.getElementById('crypto-list').innerHTML = Object.entries(c).map(([k,v])=>`
+  const c = await api('GET', '/api/crypto');
+  document.getElementById('crypto-list').innerHTML = Object.entries(c).map(([k,v]) => `
     <div class="crypto-card">
-      <div class="crypto-label">${k}</div>
-      <div class="crypto-addr" onclick="copyAddr('${v}',this)">${v}<br><small style="color:var(--muted);font-size:.7rem">Cliquer pour copier</small></div>
+      <div class="c-label">${k}</div>
+      <div class="c-addr" onclick="copyAddr('${v}',this)">${v}<br><small style="font-size:.7rem">Cliquer pour copier</small></div>
     </div>`).join('');
 }
-function copyAddr(addr,el){
-  navigator.clipboard.writeText(addr);
-  el.innerHTML=`<span style="color:var(--green)">✓ Copié !</span>`;
-  setTimeout(()=>loadCrypto(),1200);
+
+function copyAddr(addr, el){
+  navigator.clipboard.writeText(addr).then(() => {
+    el.innerHTML = '<span style="color:var(--grn)">✓ Adresse copiée !</span>';
+    setTimeout(() => loadCrypto(), 1500);
+  });
 }
+
 async function requestDeposit(){
-  const amount=document.getElementById('dep-amount').value;
-  if(!amount||amount<=0) return toast('Montant invalide');
-  const r = await post('/api/deposit/request',{pseudo:state.pseudo,amount});
-  if(!r.ok) return toast('⚠ '+r.msg);
-  document.getElementById('dep-msg').style.display='block';
-  setTimeout(()=>document.getElementById('dep-msg').style.display='none',4000);
+  const amt = document.getElementById('dep-amt').value;
+  document.getElementById('dep-ok').style.display = 'none';
+  document.getElementById('dep-err').style.display = 'none';
+  const r = await api('POST', '/api/deposit/request', { pseudo: S.pseudo, amount: amt });
+  if(!r.ok){
+    document.getElementById('dep-err').textContent = '⚠ ' + r.msg;
+    document.getElementById('dep-err').style.display = 'block';
+    return;
+  }
+  document.getElementById('dep-ok').style.display = 'block';
+  document.getElementById('dep-amt').value = '';
 }
 
 // ── Chat ──────────────────────────────────────────────────────────────────────
-socket.on('msg',({pseudo,text,ts})=>{
-  const box=document.getElementById('messages');
-  const d=new Date(ts);
-  const time=`${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-  box.innerHTML+=`<div class="msg-line"><span class="pseudo">${pseudo}</span>${text}<span class="ts">${time}</span></div>`;
-  box.scrollTop=box.scrollHeight;
+socket.on('chat_msg', ({ pseudo, text, ts }) => {
+  const box = document.getElementById('chat-box');
+  const d = new Date(ts);
+  const t = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+  box.innerHTML += `<div class="msg"><span class="who">${pseudo}</span>${text}<span class="when">${t}</span></div>`;
+  box.scrollTop = box.scrollHeight;
 });
-socket.on('products',renderProducts);
 
 function sendMsg(){
-  const inp=document.getElementById('chat-input');
+  const inp = document.getElementById('chat-inp');
   if(!inp.value.trim()) return;
-  socket.emit('msg',{pseudo:state.pseudo,text:inp.value.trim()});
-  inp.value='';
+  socket.emit('chat_msg', { pseudo: S.pseudo, text: inp.value.trim() });
+  inp.value = '';
 }
 
-// ── Admin ─────────────────────────────────────────────────────────────────────
-function showAdminTab(name, btn){
-  ['deposits','users','promos'].forEach(t => document.getElementById('admin-'+t).style.display='none');
-  document.querySelectorAll('#tab-admin-panel .tab').forEach(b=>b.classList.remove('active'));
-  document.getElementById('admin-'+name).style.display='block';
-  btn.classList.add('active');
-  if(name==='deposits') loadPending();
-  if(name==='users') loadUsers();
-  if(name==='promos') loadPromos();
-}
-
+// ── Admin : Dépôts ────────────────────────────────────────────────────────────
 async function loadPending(){
-  const list = await fetch('/api/admin/pending',{headers:{'x-admin':'admin123'}}).then(r=>r.json());
-  document.getElementById('pending-tbody').innerHTML = list.length
-    ? list.map(u=>`<tr>
-        <td><span class="badge">@${u.pseudo}</span></td>
-        <td><span class="badge green">+${u.pending.toFixed(2)} €</span></td>
+  const list = await api('GET', '/api/admin/pending', null, true);
+  document.getElementById('t-pending').innerHTML = list.length
+    ? list.map(u => `<tr>
+        <td><span class="badge">${u.pseudo}</span></td>
+        <td><span class="badge badge-grn">+${u.pending.toFixed(2)} €</span></td>
         <td>${u.balance.toFixed(2)} €</td>
-        <td><button class="btn" style="padding:4px 12px;font-size:.78rem" onclick="validate('${u.pseudo}')">✓ Valider</button></td>
+        <td><button class="btn" style="padding:5px 12px;font-size:.78rem" onclick="validateDeposit('${u.pseudo}')">✓ Valider</button></td>
       </tr>`).join('')
-    : '<tr><td colspan="4" style="color:var(--muted);text-align:center">Aucun dépôt en attente</td></tr>';
+    : '<tr><td colspan="4" style="color:var(--mut);text-align:center;padding:20px">Aucun dépôt en attente</td></tr>';
 }
 
-async function validate(pseudo){
-  await post('/api/admin/validate',{pseudo,adminPass:'admin123'});
-  toast(`✓ Dépôt validé pour @${pseudo}`); loadPending();
+async function validateDeposit(pseudo){
+  const r = await api('POST', '/api/admin/validate', { pseudo }, true);
+  if(!r.ok) return toast('Erreur');
+  toast('✓ Dépôt validé pour @' + pseudo);
+  loadPending();
 }
 
+// ── Admin : Utilisateurs ──────────────────────────────────────────────────────
 async function loadUsers(){
-  const list = await fetch('/api/admin/users',{headers:{'x-admin':'admin123'}}).then(r=>r.json());
-  document.getElementById('users-tbody').innerHTML = list.length
-    ? list.map(u=>`<tr>
-        <td><span class="badge">@${u.pseudo}</span></td>
-        <td><span class="badge green">${u.balance.toFixed(2)} €</span></td>
-        <td>${u.pendingDeposit > 0 ? `<span class="badge" style="border-color:#f0c040;color:#f0c040">+${u.pendingDeposit.toFixed(2)} €</span>` : '—'}</td>
+  const list = await api('GET', '/api/admin/users', null, true);
+  document.getElementById('t-users').innerHTML = list.length
+    ? list.map(u => `<tr>
+        <td><span class="badge">${u.pseudo}</span></td>
+        <td><span class="badge badge-grn">${u.balance.toFixed(2)} €</span></td>
+        <td>${u.pendingDeposit > 0 ? `<span class="badge badge-acc">+${u.pendingDeposit.toFixed(2)} €</span>` : '—'}</td>
         <td>
-          <div style="display:flex;gap:4px">
-            <input id="quick-amt-${u.pseudo}" type="number" placeholder="€" style="width:70px;padding:4px 6px;font-size:.78rem">
-            <button class="btn" style="padding:4px 10px;font-size:.75rem" onclick="quickCredit('${u.pseudo}')">+ Créditer</button>
+          <div class="flex-row" style="flex-wrap:nowrap">
+            <input id="qa-${u.pseudo}" type="number" placeholder="€" style="width:80px;padding:6px 8px;font-size:.78rem">
+            <button class="btn" style="padding:5px 10px;font-size:.75rem" onclick="quickCredit('${u.pseudo}')">+ Créditer</button>
           </div>
         </td>
       </tr>`).join('')
-    : '<tr><td colspan="4" style="color:var(--muted);text-align:center">Aucun utilisateur</td></tr>';
+    : '<tr><td colspan="4" style="color:var(--mut);text-align:center;padding:20px">Aucun utilisateur</td></tr>';
 }
 
 async function addBalance(){
   const pseudo = document.getElementById('ab-pseudo').value.trim();
-  const amount = document.getElementById('ab-amount').value;
-  if(!pseudo||!amount) return toast('Pseudo et montant requis');
-  const r = await fetch('/api/admin/addbalance',{method:'POST',headers:{'Content-Type':'application/json','x-admin':'admin123'},body:JSON.stringify({pseudo,amount})}).then(x=>x.json());
-  if(!r.ok) return toast('⚠ '+r.msg);
-  toast(`✓ ${amount}€ crédité à @${pseudo}`); loadUsers();
+  const amount = document.getElementById('ab-amt').value;
+  if(!pseudo || !amount) return toast('Pseudo et montant requis');
+  const r = await api('POST', '/api/admin/addbalance', { pseudo, amount }, true);
+  if(!r.ok) return toast('⚠ ' + r.msg);
+  toast('✓ ' + amount + '€ crédité à @' + pseudo);
+  document.getElementById('ab-pseudo').value = '';
+  document.getElementById('ab-amt').value = '';
+  loadUsers();
 }
 
 async function quickCredit(pseudo){
-  const amount = document.getElementById('quick-amt-'+pseudo).value;
+  const amount = document.getElementById('qa-'+pseudo).value;
   if(!amount) return toast('Montant requis');
-  const r = await fetch('/api/admin/addbalance',{method:'POST',headers:{'Content-Type':'application/json','x-admin':'admin123'},body:JSON.stringify({pseudo,amount})}).then(x=>x.json());
-  if(!r.ok) return toast('⚠ '+r.msg);
-  toast(`✓ ${amount}€ crédité à @${pseudo}`); loadUsers();
+  const r = await api('POST', '/api/admin/addbalance', { pseudo, amount }, true);
+  if(!r.ok) return toast('⚠ ' + r.msg);
+  toast('✓ ' + amount + '€ crédité à @' + pseudo);
+  loadUsers();
 }
 
+// ── Admin : Promos ────────────────────────────────────────────────────────────
 async function loadPromos(){
-  const list = await fetch('/api/promos',{headers:{'x-admin':'admin123'}}).then(r=>r.json());
-  document.getElementById('promos-tbody').innerHTML = list.length
-    ? list.map(p=>`<tr>
-        <td><span class="badge" style="color:var(--accent);border-color:var(--accent)">${p.code}</span></td>
-        <td>${p.type==='percent' ? `-${p.discount}%` : `-${p.discount}€`}</td>
-        <td>${p.uses}${p.maxUses > 0 ? ` / ${p.maxUses}` : ' (∞)'}</td>
-        <td><button class="btn" style="padding:4px 10px;font-size:.75rem;background:transparent;border:1px solid var(--red);color:var(--red)" onclick="deletePromo('${p.code}')">🗑 Supprimer</button></td>
+  const list = await api('GET', '/api/promos', null, true);
+  document.getElementById('t-promos').innerHTML = list.length
+    ? list.map(p => `<tr>
+        <td><span class="badge badge-acc">${p.code}</span></td>
+        <td>${p.type==='percent' ? `-${p.discount}%` : `-${p.discount} €`}</td>
+        <td>${p.uses}${p.maxUses > 0 ? ` / ${p.maxUses}` : ' (illimité)'}</td>
+        <td><button class="btn btn-red" style="padding:4px 10px;font-size:.75rem" onclick="deletePromo('${p.code}')">🗑 Supprimer</button></td>
       </tr>`).join('')
-    : '<tr><td colspan="4" style="color:var(--muted);text-align:center">Aucun code promo</td></tr>';
+    : '<tr><td colspan="4" style="color:var(--mut);text-align:center;padding:20px">Aucun code promo actif</td></tr>';
 }
 
 async function createPromo(){
-  const code = document.getElementById('promo-code').value.trim().toUpperCase();
-  const discount = document.getElementById('promo-discount').value;
-  const type = document.getElementById('promo-type').value;
-  const maxUses = document.getElementById('promo-uses').value;
-  if(!code||!discount) return toast('Code et réduction requis');
-  const r = await fetch('/api/promos',{method:'POST',headers:{'Content-Type':'application/json','x-admin':'admin123'},body:JSON.stringify({code,discount,type,maxUses})}).then(x=>x.json());
-  if(!r.ok) return toast('⚠ '+r.msg);
-  toast(`✓ Code ${code} créé !`);
-  document.getElementById('promo-code').value='';
-  document.getElementById('promo-discount').value='';
+  const code     = document.getElementById('pr-code').value.trim().toUpperCase();
+  const discount = document.getElementById('pr-discount').value;
+  const type     = document.getElementById('pr-type').value;
+  const maxUses  = document.getElementById('pr-uses').value;
+  if(!code || !discount) return toast('Code et réduction requis');
+  const r = await api('POST', '/api/promos', { code, discount, type, maxUses }, true);
+  if(!r.ok) return toast('⚠ ' + r.msg);
+  toast('✓ Code ' + code + ' créé !');
+  document.getElementById('pr-code').value = '';
+  document.getElementById('pr-discount').value = '';
+  document.getElementById('pr-uses').value = '';
   loadPromos();
 }
 
 async function deletePromo(code){
-  if(!confirm('Supprimer le code '+code+' ?')) return;
-  await fetch('/api/promos/'+code,{method:'DELETE',headers:{'x-admin':'admin123'}});
+  if(!confirm('Supprimer le code ' + code + ' ?')) return;
+  await fetch('/api/promos/'+code, { method:'DELETE', headers:{'x-admin':'admin123'} });
   toast('Code supprimé'); loadPromos();
 }
 
-// ── Tabs ──────────────────────────────────────────────────────────────────────
-function showTab(name,btn){
-  ['shop','crypto','chat','admin-panel'].forEach(t=>
-    document.getElementById('tab-'+t).style.display='none');
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+name).style.display='block';
-  btn.classList.add('active');
-  if(name==='crypto') loadCrypto();
-  if(name==='admin'){ loadPending(); }
+// ── Utils ─────────────────────────────────────────────────────────────────────
+async function api(method, url, body, admin){
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if(admin) opts.headers['x-admin'] = 'admin123';
+  if(body) opts.body = JSON.stringify(body);
+  return fetch(url, opts).then(r => r.json());
 }
 
-// ── Utils ─────────────────────────────────────────────────────────────────────
-const post=(url,body)=>fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json());
-const get=(url)=>fetch(url).then(r=>r.json());
 function toast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2500);
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
 }
 </script>
 </body>
