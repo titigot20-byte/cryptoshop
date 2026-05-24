@@ -7,93 +7,96 @@
 <script src="/socket.io/socket.io.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;500&display=swap');
-:root{--bg:#0a0a0a;--sur:#111;--bor:#222;--acc:#f0c040;--txt:#e8e8e8;--mut:#555;--grn:#3ddc84;--red:#ff5f5f}
+:root{--bg:#0a0a0a;--sur:#111;--bor:#222;--acc:#f0c040;--txt:#e8e8e8;--mut:#555;--grn:#3ddc84;--red:#ff5f5f;--blue:#4a9eff}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh}
 nav{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid var(--bor);background:var(--sur);position:sticky;top:0;z-index:10}
 .logo{font-family:'Space Mono',monospace;font-weight:700;color:var(--acc);font-size:1.1rem}
-.nav-right{display:flex;align-items:center;gap:10px;font-size:.85rem}
-.bal{background:#1a1a1a;border:1px solid var(--bor);padding:4px 10px;border-radius:4px;font-family:'Space Mono',monospace}
-main{max-width:1100px;margin:0 auto;padding:24px}
-/* tabs */
-.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--bor)}
+.nav-r{display:flex;align-items:center;gap:10px;font-size:.85rem}
+.bal{background:#1a1a1a;border:1px solid var(--bor);padding:4px 10px;border-radius:4px;font-family:'Space Mono',monospace;font-size:.85rem}
+.role-badge{padding:2px 8px;border-radius:3px;font-size:.72rem;font-weight:700;font-family:'Space Mono',monospace}
+.role-user{background:#1a2a1a;color:var(--grn);border:1px solid var(--grn)}
+.role-reseller{background:#1a1a2a;color:var(--blue);border:1px solid var(--blue)}
+.role-admin{background:#2a1a1a;color:var(--red);border:1px solid var(--red)}
+main{max-width:1150px;margin:0 auto;padding:24px}
+.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--bor);flex-wrap:wrap}
 .tab{padding:8px 16px;cursor:pointer;font-size:.85rem;border:none;border-bottom:2px solid transparent;background:none;color:var(--mut);font-family:'DM Sans',sans-serif;transition:.2s}
 .tab.active{color:var(--acc);border-bottom-color:var(--acc)}
-/* inputs / buttons */
 input,select,textarea{width:100%;background:#0d0d0d;border:1px solid var(--bor);color:var(--txt);padding:10px 12px;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:.2s}
 input:focus,select:focus{border-color:var(--acc)}
 select option{background:#0d0d0d}
-.btn{background:var(--acc);color:#000;border:none;padding:10px 20px;border-radius:4px;font-weight:700;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;transition:.15s;white-space:nowrap}
+.btn{display:inline-block;background:var(--acc);color:#000;border:none;padding:10px 18px;border-radius:4px;font-weight:700;cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;transition:.15s;white-space:nowrap}
 .btn:hover{filter:brightness(1.1)}
 .btn-ghost{background:transparent;border:1px solid var(--bor);color:var(--txt)}
 .btn-red{background:transparent;border:1px solid var(--red);color:var(--red)}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-green{background:var(--grn);color:#000}
+.btn-sm{padding:5px 10px;font-size:.78rem}
 .lbl{display:block;font-size:.78rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
 .field{margin-bottom:12px}
-/* auth */
+.flex-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.flex-row>input,.flex-row>select{flex:1;min-width:90px}
 #auth-wrap{display:flex;align-items:center;justify-content:center;min-height:80vh}
-.card{background:var(--sur);border:1px solid var(--bor);border-radius:8px;padding:28px;max-width:380px;width:100%}
+.card{background:var(--sur);border:1px solid var(--bor);border-radius:8px;padding:28px;max-width:400px;width:100%}
 .card h2{font-family:'Space Mono',monospace;font-size:1rem;color:var(--acc);margin-bottom:20px}
 .err{color:var(--red);font-size:.82rem;margin-top:6px;min-height:18px}
 .switch{color:var(--mut);font-size:.82rem;margin-top:14px;text-align:center}
 .switch span{color:var(--acc);cursor:pointer;text-decoration:underline}
-/* products */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:16px}
-.product-card{background:var(--sur);border:1px solid var(--bor);border-radius:6px;overflow:hidden;transition:.2s}
-.product-card:hover{border-color:var(--acc)}
-.product-card img{width:100%;height:120px;object-fit:cover;display:block}
-.product-info{padding:12px}
-.p-name{font-size:.9rem;font-weight:500;margin-bottom:4px}
-.p-price{font-family:'Space Mono',monospace;color:var(--acc);font-size:.85rem;margin-bottom:10px}
-.promo-row{display:flex;gap:4px;margin-bottom:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}
+.pc{background:var(--sur);border:1px solid var(--bor);border-radius:6px;overflow:hidden;transition:.2s}
+.pc:hover{border-color:var(--acc)}
+.pc img{width:100%;height:120px;object-fit:cover;display:block}
+.pi{padding:12px}
+.p-name{font-size:.9rem;font-weight:500;margin-bottom:2px}
+.p-price{font-family:'Space Mono',monospace;color:var(--acc);font-size:.88rem;margin-bottom:4px}
+.p-stock{font-size:.75rem;color:var(--mut);margin-bottom:8px}
+.p-stock.low{color:var(--red)}
+.p-stock.ok{color:var(--grn)}
+.promo-row{display:flex;gap:4px;margin-bottom:4px}
 .promo-row input{padding:6px 8px;font-size:.78rem}
-.promo-row .btn{padding:6px 10px;font-size:.78rem}
-.promo-ok{font-size:.75rem;color:var(--grn);margin-bottom:4px;min-height:16px}
-/* section header */
+.promo-ok{font-size:.75rem;min-height:16px;margin-bottom:4px}
 .sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
 .sec-head h3{font-family:'Space Mono',monospace;font-size:.9rem;color:var(--acc)}
-/* add form */
 .add-form{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:16px;margin-bottom:20px;display:none}
 .add-form.open{display:block}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-/* crypto */
 .crypto-card{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:14px;margin-bottom:10px}
 .c-label{font-family:'Space Mono',monospace;color:var(--acc);font-size:.85rem;margin-bottom:6px}
 .c-addr{font-family:'Space Mono',monospace;font-size:.75rem;color:var(--mut);word-break:break-all;cursor:pointer;transition:.2s}
 .c-addr:hover{color:var(--txt)}
-/* chat */
-#chat-box{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:12px;height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-.msg{font-size:.85rem;line-height:1.5}
-.msg .who{font-family:'Space Mono',monospace;color:var(--acc);margin-right:6px}
+#chat-box{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:12px;height:58vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.msg .who{font-family:'Space Mono',monospace;color:var(--acc);margin-right:6px;font-size:.85rem}
 .msg .when{color:var(--mut);font-size:.72rem;margin-left:6px}
-.chat-send{display:flex;gap:8px}
-/* admin */
-.admin-tabs{display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--bor)}
-table{width:100%;border-collapse:collapse;font-size:.85rem}
-th,td{padding:10px 12px;border-bottom:1px solid var(--bor);text-align:left}
-th{color:var(--mut);font-weight:500;font-size:.75rem;text-transform:uppercase}
-.badge{display:inline-block;background:#1a1a1a;border:1px solid var(--bor);padding:2px 8px;border-radius:3px;font-family:'Space Mono',monospace;font-size:.78rem}
-.badge-grn{border-color:var(--grn);color:var(--grn)}
-.badge-acc{border-color:var(--acc);color:var(--acc)}
 .admin-box{background:var(--sur);border:1px solid var(--bor);border-radius:6px;padding:16px;margin-bottom:16px}
-.admin-box .title{font-family:'Space Mono',monospace;font-size:.8rem;color:var(--mut);margin-bottom:12px;text-transform:uppercase}
-.flex-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
-.flex-row input,.flex-row select{flex:1;min-width:100px}
-/* toast */
-#toast{position:fixed;bottom:24px;right:24px;background:var(--acc);color:#000;padding:10px 18px;border-radius:4px;font-weight:700;font-size:.82rem;opacity:0;pointer-events:none;transition:.3s;z-index:999}
+.admin-box .ttl{font-family:'Space Mono',monospace;font-size:.78rem;color:var(--mut);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em}
+table{width:100%;border-collapse:collapse;font-size:.84rem}
+th,td{padding:9px 12px;border-bottom:1px solid var(--bor);text-align:left;vertical-align:middle}
+th{color:var(--mut);font-weight:500;font-size:.74rem;text-transform:uppercase}
+.badge{display:inline-block;background:#1a1a1a;border:1px solid var(--bor);padding:2px 8px;border-radius:3px;font-family:'Space Mono',monospace;font-size:.76rem}
+.badge-g{border-color:var(--grn);color:var(--grn)}
+.badge-a{border-color:var(--acc);color:var(--acc)}
+.badge-b{border-color:var(--blue);color:var(--blue)}
+.badge-r{border-color:var(--red);color:var(--red)}
+.api-box{background:#0a0a1a;border:1px solid var(--blue);border-radius:6px;padding:16px;margin-top:16px}
+.api-box .ttl{font-family:'Space Mono',monospace;color:var(--blue);font-size:.85rem;margin-bottom:12px}
+.code-block{background:#050510;border:1px solid var(--bor);border-radius:4px;padding:12px;font-family:'Space Mono',monospace;font-size:.75rem;color:#aaa;overflow-x:auto;white-space:pre;margin-bottom:8px;cursor:pointer}
+.code-block:hover{border-color:var(--blue)}
+.orders-table-wrap{overflow-x:auto}
+#toast{position:fixed;bottom:24px;right:24px;background:var(--acc);color:#000;padding:10px 18px;border-radius:4px;font-weight:700;font-size:.82rem;opacity:0;pointer-events:none;transition:.3s;z-index:999;max-width:300px}
 #toast.show{opacity:1}
+.bonus-tag{background:#1a2a1a;border:1px solid var(--grn);color:var(--grn);padding:2px 8px;border-radius:3px;font-size:.76rem;font-family:'Space Mono',monospace}
 </style>
 </head>
 <body>
-
 <nav>
   <div class="logo">⬡ CRYPTOSHOP</div>
-  <div class="nav-right" id="nav-right" style="display:none">
+  <div class="nav-r" id="nav-r" style="display:none">
+    <span id="nav-role" class="role-badge"></span>
     <span id="nav-pseudo" style="color:var(--mut);font-size:.82rem"></span>
     <span class="bal">💰 <span id="nav-bal">0.00</span> €</span>
-    <button class="btn btn-ghost" style="padding:4px 12px;font-size:.78rem" onclick="logout()">Déco</button>
+    <button class="btn btn-ghost btn-sm" onclick="logout()">Déco</button>
   </div>
 </nav>
-
 <main>
 
 <!-- AUTH -->
@@ -110,31 +113,40 @@ th{color:var(--mut);font-weight:500;font-size:.75rem;text-transform:uppercase}
 
 <!-- APP -->
 <div id="app-wrap" style="display:none">
-
-  <div class="tabs">
+  <div class="tabs" id="main-tabs">
     <button class="tab active" onclick="showTab('shop',this)">Boutique</button>
+    <button class="tab" onclick="showTab('orders',this)">Mes achats</button>
     <button class="tab" onclick="showTab('crypto',this)">Recharger</button>
     <button class="tab" onclick="showTab('chat',this)">Chat</button>
-    <button class="tab" id="btn-admin-tab" style="display:none" onclick="showTab('admin',this)">Admin</button>
+    <button class="tab" id="btn-reseller-tab" style="display:none" onclick="showTab('reseller',this)">🔑 Revendeur</button>
+    <button class="tab" id="btn-admin-tab" style="display:none" onclick="showTab('admin',this)">⚙ Admin</button>
   </div>
 
   <!-- BOUTIQUE -->
   <div id="tab-shop">
     <div class="sec-head">
       <h3>PRODUITS</h3>
-      <button class="btn btn-ghost" id="btn-add" style="display:none;font-size:.78rem" onclick="toggleAddForm()">+ Ajouter</button>
+      <button class="btn btn-ghost btn-sm" id="btn-add" style="display:none" onclick="toggleAddForm()">+ Ajouter</button>
     </div>
     <div class="add-form" id="add-form">
       <div class="form-row" style="margin-bottom:12px">
         <div class="field" style="margin:0"><label class="lbl">Nom</label><input id="p-name" placeholder="Nom du produit"></div>
-        <div class="field" style="margin:0"><label class="lbl">Prix (€)</label><input id="p-price" type="number" placeholder="9.99"></div>
+        <div class="field" style="margin:0"><label class="lbl">Prix (€)</label><input id="p-price" type="number" placeholder="9.99" step="0.01"></div>
+      </div>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="field" style="margin:0">
+          <label class="lbl">Stock (vide = illimité)</label>
+          <input id="p-stock" type="number" placeholder="Ex: 10 — laisser vide si illimité">
+        </div>
+        <div class="field" style="margin:0">
+          <label class="lbl">Image URL</label>
+          <input id="p-url" placeholder="https://...">
+        </div>
       </div>
       <div class="field">
-        <label class="lbl">Image</label>
+        <label class="lbl">Ou uploader une image</label>
         <div class="flex-row">
           <input type="file" id="p-file" accept="image/*" onchange="previewImg(this)" style="padding:6px">
-          <span style="color:var(--mut);font-size:.78rem;white-space:nowrap">ou URL :</span>
-          <input id="p-url" placeholder="https://...">
         </div>
         <div id="img-preview" style="margin-top:8px;display:none"><img id="img-preview-el" style="height:70px;border-radius:4px;border:1px solid var(--bor)"></div>
       </div>
@@ -143,19 +155,32 @@ th{color:var(--mut);font-weight:500;font-size:.75rem;text-transform:uppercase}
     <div class="grid" id="products-grid"></div>
   </div>
 
+  <!-- MES ACHATS -->
+  <div id="tab-orders" style="display:none">
+    <div class="sec-head"><h3>MES ACHATS</h3><button class="btn btn-ghost btn-sm" onclick="loadOrders()">↻</button></div>
+    <div class="orders-table-wrap">
+      <table><thead><tr><th>Produit</th><th>Prix payé</th><th>Promo</th><th>Date</th></tr></thead>
+      <tbody id="t-orders"></tbody></table>
+    </div>
+  </div>
+
   <!-- RECHARGER -->
   <div id="tab-crypto" style="display:none">
-    <div style="max-width:500px">
+    <div style="max-width:520px">
       <h3 style="font-family:'Space Mono',monospace;color:var(--acc);font-size:.9rem;margin-bottom:16px">ADRESSES DE RECHARGE</h3>
       <div id="crypto-list"></div>
       <div class="admin-box" style="margin-top:16px">
-        <div class="title">Déclarer un virement</div>
-        <div class="flex-row">
-          <input id="dep-amt" type="number" placeholder="Montant en € (min. 20€)">
+        <div class="ttl">Déclarer un virement</div>
+        <div class="flex-row" style="margin-bottom:8px">
+          <input id="dep-amt" type="number" placeholder="Montant en €" min="20">
           <button class="btn" onclick="requestDeposit()">Déclarer</button>
         </div>
-        <div id="dep-ok" style="color:var(--grn);font-size:.82rem;margin-top:8px;display:none">✓ Dépôt enregistré — en attente de validation</div>
-        <div id="dep-err" style="color:var(--red);font-size:.82rem;margin-top:8px;display:none"></div>
+        <div id="dep-bonus-preview" style="display:none;margin-bottom:8px"></div>
+        <div id="dep-ok" style="color:var(--grn);font-size:.82rem;display:none">✓ Dépôt enregistré — en attente de validation</div>
+        <div id="dep-err" style="color:var(--red);font-size:.82rem;display:none"></div>
+        <div style="margin-top:12px;font-size:.78rem;color:var(--mut);border-top:1px solid var(--bor);padding-top:10px">
+          <div id="bonus-info">💎 <b style="color:var(--grn)">Bonus crypto :</b> +5% entre 50€ et 99€ · +10% dès 100€</div>
+        </div>
       </div>
     </div>
   </div>
@@ -163,89 +188,138 @@ th{color:var(--mut);font-weight:500;font-size:.75rem;text-transform:uppercase}
   <!-- CHAT -->
   <div id="tab-chat" style="display:none">
     <div id="chat-box"></div>
-    <div class="chat-send">
+    <div class="flex-row">
       <input id="chat-inp" placeholder="Votre message..." onkeydown="if(event.key==='Enter')sendMsg()">
       <button class="btn" onclick="sendMsg()">Envoyer</button>
     </div>
   </div>
 
+  <!-- REVENDEUR -->
+  <div id="tab-reseller" style="display:none">
+    <div class="api-box">
+      <div class="ttl">🔑 VOS IDENTIFIANTS API</div>
+      <div style="margin-bottom:8px;font-size:.82rem;color:var(--mut)">Pseudo :</div>
+      <div class="code-block" id="api-pseudo" onclick="copyText(this)"></div>
+      <div style="margin-bottom:8px;font-size:.82rem;color:var(--mut)">Token API :</div>
+      <div class="code-block" id="api-token" onclick="copyText(this)"></div>
+      <div style="font-size:.78rem;color:var(--mut);margin-top:4px">Cliquer pour copier</div>
+    </div>
+
+    <div style="margin-top:20px">
+      <div class="sec-head"><h3>DOCUMENTATION API</h3></div>
+      <div class="admin-box">
+        <div class="ttl">Base URL</div>
+        <div class="code-block" id="api-base-url" onclick="copyText(this)"></div>
+
+        <div class="ttl" style="margin-top:16px">Headers requis pour toutes les requêtes</div>
+        <div class="code-block">x-pseudo: VOTRE_PSEUDO
+x-token:  VOTRE_TOKEN_API</div>
+
+        <div class="ttl" style="margin-top:16px">GET /api/reseller/products — Liste des produits (-10%)</div>
+        <div class="code-block">curl -H "x-pseudo: PSEUDO" -H "x-token: TOKEN" \
+  BASE_URL/api/reseller/products</div>
+
+        <div class="ttl" style="margin-top:16px">POST /api/reseller/buy — Acheter un produit</div>
+        <div class="code-block">curl -X POST BASE_URL/api/reseller/buy \
+  -H "x-pseudo: PSEUDO" -H "x-token: TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"productId": 1}'</div>
+
+        <div class="ttl" style="margin-top:16px">GET /api/reseller/balance — Voir votre solde</div>
+        <div class="code-block">curl -H "x-pseudo: PSEUDO" -H "x-token: TOKEN" \
+  BASE_URL/api/reseller/balance</div>
+
+        <div class="ttl" style="margin-top:16px">GET /api/reseller/orders — Historique de vos achats</div>
+        <div class="code-block">curl -H "x-pseudo: PSEUDO" -H "x-token: TOKEN" \
+  BASE_URL/api/reseller/orders</div>
+      </div>
+    </div>
+
+    <div style="margin-top:4px">
+      <div class="sec-head"><h3>MES ACHATS REVENDEUR</h3><button class="btn btn-ghost btn-sm" onclick="loadOrders()">↻</button></div>
+      <div class="orders-table-wrap">
+        <table><thead><tr><th>Produit</th><th>Prix revendeur</th><th>Prix public</th><th>Date</th></tr></thead>
+        <tbody id="t-reseller-orders"></tbody></table>
+      </div>
+    </div>
+  </div>
+
   <!-- ADMIN -->
   <div id="tab-admin" style="display:none">
-    <div class="admin-tabs tabs">
-      <button class="tab active" id="atab-dep" onclick="showAdminTab('deposits',this)">💰 Dépôts</button>
-      <button class="tab" id="atab-usr" onclick="showAdminTab('users',this)">👤 Utilisateurs</button>
-      <button class="tab" id="atab-prm" onclick="showAdminTab('promos',this)">🎟 Promos</button>
+    <div class="tabs admin-tabs">
+      <button class="tab active" onclick="showAdminTab('deposits',this)">💰 Dépôts</button>
+      <button class="tab" onclick="showAdminTab('users',this)">👤 Utilisateurs</button>
+      <button class="tab" onclick="showAdminTab('products-admin',this)">📦 Produits</button>
+      <button class="tab" onclick="showAdminTab('promos',this)">🎟 Promos</button>
+      <button class="tab" onclick="showAdminTab('all-orders',this)">📋 Commandes</button>
     </div>
 
     <!-- Dépôts -->
     <div id="admin-deposits">
-      <div class="sec-head">
-        <h3>DÉPÔTS EN ATTENTE</h3>
-        <button class="btn btn-ghost" style="font-size:.78rem" onclick="loadPending()">↻ Rafraîchir</button>
-      </div>
-      <table>
-        <thead><tr><th>Pseudo</th><th>En attente</th><th>Solde actuel</th><th>Action</th></tr></thead>
-        <tbody id="t-pending"></tbody>
-      </table>
+      <div class="sec-head"><h3>DÉPÔTS EN ATTENTE</h3><button class="btn btn-ghost btn-sm" onclick="loadPending()">↻</button></div>
+      <table><thead><tr><th>Pseudo</th><th>Rôle</th><th>En attente</th><th>Bonus</th><th>Solde actuel</th><th>Action</th></tr></thead>
+      <tbody id="t-pending"></tbody></table>
     </div>
 
     <!-- Utilisateurs -->
     <div id="admin-users" style="display:none">
       <div class="admin-box">
-        <div class="title">Ajouter du solde manuellement</div>
+        <div class="ttl">Ajouter du solde</div>
         <div class="flex-row">
           <input id="ab-pseudo" placeholder="Pseudo">
           <input id="ab-amt" type="number" placeholder="Montant €">
           <button class="btn" onclick="addBalance()">Créditer</button>
         </div>
       </div>
-      <div class="sec-head">
-        <h3>TOUS LES UTILISATEURS</h3>
-        <button class="btn btn-ghost" style="font-size:.78rem" onclick="loadUsers()">↻ Rafraîchir</button>
-      </div>
-      <table>
-        <thead><tr><th>Pseudo</th><th>Solde</th><th>En attente</th><th>Crédit rapide</th></tr></thead>
-        <tbody id="t-users"></tbody>
-      </table>
+      <div class="sec-head"><h3>TOUS LES UTILISATEURS</h3><button class="btn btn-ghost btn-sm" onclick="loadUsers()">↻</button></div>
+      <table><thead><tr><th>Pseudo</th><th>Rôle</th><th>Solde</th><th>En attente</th><th>Crédit rapide</th><th>Accès revendeur</th></tr></thead>
+      <tbody id="t-users"></tbody></table>
+    </div>
+
+    <!-- Produits admin -->
+    <div id="admin-products-admin" style="display:none">
+      <div class="sec-head"><h3>GESTION STOCKS</h3><button class="btn btn-ghost btn-sm" onclick="loadAdminProducts()">↻</button></div>
+      <table><thead><tr><th>Produit</th><th>Prix</th><th>Prix revendeur</th><th>Stock</th><th>Modifier stock</th><th>Action</th></tr></thead>
+      <tbody id="t-admin-products"></tbody></table>
     </div>
 
     <!-- Promos -->
     <div id="admin-promos" style="display:none">
       <div class="admin-box">
-        <div class="title">Créer un code promo</div>
-        <div class="flex-row" style="margin-bottom:8px">
-          <input id="pr-code" placeholder="Code (ex: FLASH20)" style="text-transform:uppercase">
+        <div class="ttl">Créer un code promo</div>
+        <div class="flex-row">
+          <input id="pr-code" placeholder="Code ex: FLASH20" style="text-transform:uppercase">
           <input id="pr-discount" type="number" placeholder="Réduction">
-          <select id="pr-type">
-            <option value="percent">% remise</option>
-            <option value="fixed">€ fixe</option>
-          </select>
+          <select id="pr-type"><option value="percent">% remise</option><option value="fixed">€ fixe</option></select>
           <input id="pr-uses" type="number" placeholder="Max utilisations (0=∞)">
           <button class="btn" onclick="createPromo()">Créer</button>
         </div>
       </div>
-      <div class="sec-head">
-        <h3>CODES ACTIFS</h3>
-        <button class="btn btn-ghost" style="font-size:.78rem" onclick="loadPromos()">↻ Rafraîchir</button>
+      <div class="sec-head"><h3>CODES ACTIFS</h3><button class="btn btn-ghost btn-sm" onclick="loadPromos()">↻</button></div>
+      <table><thead><tr><th>Code</th><th>Réduction</th><th>Utilisations</th><th>Action</th></tr></thead>
+      <tbody id="t-promos"></tbody></table>
+    </div>
+
+    <!-- Toutes les commandes -->
+    <div id="admin-all-orders" style="display:none">
+      <div class="sec-head"><h3>TOUTES LES COMMANDES</h3><button class="btn btn-ghost btn-sm" onclick="loadAllOrders()">↻</button></div>
+      <div class="orders-table-wrap">
+        <table><thead><tr><th>Pseudo</th><th>Rôle</th><th>Produit</th><th>Prix payé</th><th>Prix public</th><th>Promo</th><th>Date</th></tr></thead>
+        <tbody id="t-all-orders"></tbody></table>
       </div>
-      <table>
-        <thead><tr><th>Code</th><th>Réduction</th><th>Utilisations</th><th>Action</th></tr></thead>
-        <tbody id="t-promos"></tbody>
-      </table>
     </div>
   </div>
 
-</div>
+</div><!-- /app-wrap -->
 </main>
-
 <div id="toast"></div>
 
 <script>
 const socket = io();
-let S = { pseudo: null, role: null, balance: 0 };
-let isReg = false;
+let S = { pseudo:null, role:null, balance:0, apiToken:null };
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
+let isReg = false;
 function toggleMode(){
   isReg = !isReg;
   document.getElementById('auth-title').textContent = isReg ? '// INSCRIPTION' : '// CONNEXION';
@@ -258,85 +332,111 @@ async function doAuth(){
   const pseudo = document.getElementById('a-pseudo').value.trim();
   const pass   = document.getElementById('a-pass').value;
   document.getElementById('a-err').textContent = '';
-  if(!pseudo || !pass) return document.getElementById('a-err').textContent = 'Remplis tous les champs';
+  if(!pseudo||!pass) return document.getElementById('a-err').textContent = 'Remplis tous les champs';
   const r = await api('POST', isReg ? '/api/register' : '/api/login', {pseudo, pass});
   if(!r.ok) return document.getElementById('a-err').textContent = r.msg || 'Erreur';
-  if(isReg){ toast('Compte créé ! Connecte-toi.'); toggleMode(); return; }
-  S = { pseudo, role: r.role, balance: r.balance || 0 };
+  if(isReg){ toast('✓ Compte créé ! Connecte-toi.'); toggleMode(); return; }
+  S = { pseudo, role: r.role, balance: r.balance || 0, apiToken: r.apiToken || null };
+  boot();
+}
+
+function boot(){
   document.getElementById('auth-wrap').style.display = 'none';
   document.getElementById('app-wrap').style.display = 'block';
-  document.getElementById('nav-right').style.display = 'flex';
-  document.getElementById('nav-pseudo').textContent = '@' + pseudo;
+  document.getElementById('nav-r').style.display = 'flex';
+  document.getElementById('nav-pseudo').textContent = '@' + S.pseudo;
   document.getElementById('nav-bal').textContent = S.balance.toFixed(2);
+  const rb = document.getElementById('nav-role');
+  if(S.role === 'admin')    { rb.textContent='ADMIN';     rb.className='role-badge role-admin'; }
+  else if(S.role==='reseller'){ rb.textContent='REVENDEUR'; rb.className='role-badge role-reseller'; }
+  else                       { rb.textContent='USER';      rb.className='role-badge role-user'; }
   if(S.role === 'admin'){
     document.getElementById('btn-admin-tab').style.display = 'inline-block';
     document.getElementById('btn-add').style.display = 'inline-block';
+  }
+  if(S.role === 'reseller' || S.role === 'admin'){
+    if(S.role === 'reseller') document.getElementById('btn-reseller-tab').style.display = 'inline-block';
   }
   loadProducts();
 }
 
 function logout(){
-  S = { pseudo: null, role: null, balance: 0 };
+  S = { pseudo:null, role:null, balance:0, apiToken:null };
   document.getElementById('auth-wrap').style.display = 'flex';
   document.getElementById('app-wrap').style.display = 'none';
-  document.getElementById('nav-right').style.display = 'none';
+  document.getElementById('nav-r').style.display = 'none';
+  document.getElementById('btn-admin-tab').style.display = 'none';
+  document.getElementById('btn-reseller-tab').style.display = 'none';
   document.getElementById('a-pseudo').value = '';
   document.getElementById('a-pass').value = '';
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 function showTab(name, btn){
-  ['shop','crypto','chat','admin'].forEach(t => {
-    document.getElementById('tab-'+t).style.display = 'none';
+  document.querySelectorAll('#app-wrap > .tabs .tab').forEach(b=>b.classList.remove('active'));
+  ['shop','orders','crypto','chat','reseller','admin'].forEach(t=>{
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display = 'none';
   });
-  document.querySelectorAll('.tabs:first-of-type .tab').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-'+name).style.display = 'block';
   btn.classList.add('active');
-  if(name === 'crypto') loadCrypto();
-  if(name === 'admin'){ loadPending(); }
+  if(name==='crypto')   loadCrypto();
+  if(name==='orders')   loadOrders();
+  if(name==='admin')    loadPending();
+  if(name==='reseller') initReseller();
 }
 
 function showAdminTab(name, btn){
-  ['deposits','users','promos'].forEach(t => {
-    document.getElementById('admin-'+t).style.display = 'none';
+  document.querySelectorAll('.admin-tabs .tab').forEach(b=>b.classList.remove('active'));
+  ['deposits','users','products-admin','promos','all-orders'].forEach(t=>{
+    const el = document.getElementById('admin-'+t);
+    if(el) el.style.display = 'none';
   });
-  document.querySelectorAll('.admin-tabs .tab').forEach(b => b.classList.remove('active'));
   document.getElementById('admin-'+name).style.display = 'block';
   btn.classList.add('active');
-  if(name === 'deposits') loadPending();
-  if(name === 'users') loadUsers();
-  if(name === 'promos') loadPromos();
+  if(name==='deposits')        loadPending();
+  if(name==='users')           loadUsers();
+  if(name==='products-admin')  loadAdminProducts();
+  if(name==='promos')          loadPromos();
+  if(name==='all-orders')      loadAllOrders();
 }
 
 // ── Produits ──────────────────────────────────────────────────────────────────
 async function loadProducts(){
   const list = await api('GET', '/api/products');
-  renderProducts(list);
+  renderProducts(Array.isArray(list) ? list : []);
 }
 
 function renderProducts(list){
-  document.getElementById('products-grid').innerHTML = list.map(p => `
-    <div class="product-card">
+  document.getElementById('products-grid').innerHTML = list.map(p => {
+    const stockLabel = p.stock === null
+      ? '<div class="p-stock ok">∞ Illimité</div>'
+      : p.stock <= 0
+        ? '<div class="p-stock low">⚠ Rupture de stock</div>'
+        : p.stock <= 3
+          ? `<div class="p-stock low">⚡ Plus que ${p.stock} en stock</div>`
+          : `<div class="p-stock ok">✓ En stock (${p.stock})</div>`;
+    return `<div class="pc">
       <img src="${p.img}" alt="${p.name}" onerror="this.src='https://placehold.co/200x140/111/555?text=?'">
-      <div class="product-info">
+      <div class="pi">
         <div class="p-name">${p.name}</div>
-        <div class="p-price" id="price-display-${p.id}">${p.price.toFixed(2)} €</div>
+        <div class="p-price" id="pd-${p.id}">${p.price.toFixed(2)} €</div>
+        ${stockLabel}
         <div class="promo-row">
           <input id="promo-inp-${p.id}" placeholder="Code promo">
-          <button class="btn" onclick="applyPromo(${p.id},${p.price})">OK</button>
+          <button class="btn btn-sm" style="background:transparent;border:1px solid var(--acc);color:var(--acc)" onclick="applyPromo(${p.id},${p.price})">OK</button>
         </div>
         <div class="promo-ok" id="promo-msg-${p.id}"></div>
-        <button class="btn" id="buy-btn-${p.id}" data-price="${p.price}" onclick="buyProduct(${p.id},${p.price})" style="width:100%">Acheter</button>
-        ${S.role === 'admin' ? `<button class="btn btn-red" style="width:100%;margin-top:6px" onclick="deleteProduct(${p.id})">🗑 Supprimer</button>` : ''}
+        <button class="btn btn-sm" id="buy-btn-${p.id}" data-price="${p.price}" onclick="buyProduct(${p.id},${p.price})" style="width:100%;margin-bottom:4px" ${p.stock!==null&&p.stock<=0?'disabled style="width:100%;opacity:.4;cursor:not-allowed"':''}>Acheter</button>
+        ${S.role==='admin'?`<button class="btn btn-red btn-sm" style="width:100%" onclick="deleteProduct(${p.id})">🗑 Supprimer</button>`:''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 socket.on('products_update', renderProducts);
 
-function toggleAddForm(){
-  document.getElementById('add-form').classList.toggle('open');
-}
+function toggleAddForm(){ document.getElementById('add-form').classList.toggle('open'); }
 
 function previewImg(input){
   if(!input.files[0]) return;
@@ -348,66 +448,93 @@ function previewImg(input){
 async function addProduct(){
   const name  = document.getElementById('p-name').value.trim();
   const price = document.getElementById('p-price').value;
+  const stock = document.getElementById('p-stock').value;
   const file  = document.getElementById('p-file').files[0];
   let   img   = document.getElementById('p-url').value.trim();
-  if(!name || !price) return toast('Nom et prix requis');
+  if(!name||!price) return toast('Nom et prix requis');
   if(file){
-    const fd = new FormData();
-    fd.append('img', file);
-    const r = await fetch('/api/upload', { method:'POST', headers:{'x-admin':'admin123'}, body: fd }).then(x => x.json());
-    if(!r.ok) return toast('Erreur upload image');
+    const fd = new FormData(); fd.append('img', file);
+    const r = await fetch('/api/upload',{method:'POST',headers:{'x-admin': await getAdminPass()},body:fd}).then(x=>x.json());
+    if(!r.ok) return toast('Erreur upload');
     img = r.url;
   }
-  const r = await api('POST', '/api/products', { name, price, img }, true);
-  if(!r.ok) return toast('Erreur : ' + r.msg);
-  document.getElementById('p-name').value = '';
-  document.getElementById('p-price').value = '';
-  document.getElementById('p-file').value = '';
-  document.getElementById('p-url').value = '';
-  document.getElementById('img-preview').style.display = 'none';
+  const r = await api('POST','/api/products',{name,price,img,stock},true);
+  if(!r.ok) return toast('Erreur : '+(r.msg||''));
+  ['p-name','p-price','p-stock','p-url'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-file').value='';
+  document.getElementById('img-preview').style.display='none';
   document.getElementById('add-form').classList.remove('open');
-  toast('✓ Produit ajouté !');
-  loadProducts();
+  toast('✓ Produit ajouté !'); loadProducts();
 }
 
 async function deleteProduct(id){
   if(!confirm('Supprimer ce produit ?')) return;
-  await fetch('/api/products/'+id, { method:'DELETE', headers:{'x-admin':'admin123'} });
+  await fetch('/api/products/'+id,{method:'DELETE',headers:{'x-admin':getAdminPass()}});
   toast('Produit supprimé'); loadProducts();
 }
 
-function buyProduct(id, originalPrice){
+async function buyProduct(id, origPrice){
   const btn = document.getElementById('buy-btn-'+id);
   const finalPrice = parseFloat(btn.dataset.price);
-  if(S.balance < finalPrice) return toast('⚠ Solde insuffisant');
-  S.balance -= finalPrice;
+  const promoCode  = document.getElementById('promo-inp-'+id).value.trim();
+  const r = await api('POST','/api/buy',{pseudo:S.pseudo,productId:id,promoCode});
+  if(!r.ok) return toast('⚠ '+r.msg);
+  S.balance = r.order ? +(S.balance - r.order.price).toFixed(2) : S.balance;
+  S.balance = r.newBalance !== undefined ? r.newBalance : S.balance;
   document.getElementById('nav-bal').textContent = S.balance.toFixed(2);
-  btn.dataset.price = originalPrice; // reset promo
+  btn.dataset.price = origPrice;
   btn.textContent = 'Acheter';
-  document.getElementById('price-display-'+id).textContent = originalPrice.toFixed(2) + ' €';
+  document.getElementById('pd-'+id).textContent = origPrice.toFixed(2)+' €';
   document.getElementById('promo-msg-'+id).textContent = '';
   document.getElementById('promo-inp-'+id).value = '';
   toast('✓ Achat effectué !');
+  loadProducts();
 }
 
-async function applyPromo(id, originalPrice){
+async function applyPromo(id, origPrice){
   const code = document.getElementById('promo-inp-'+id).value.trim();
   const msg  = document.getElementById('promo-msg-'+id);
   const btn  = document.getElementById('buy-btn-'+id);
   if(!code) return;
-  const r = await api('POST', '/api/promos/apply', { code, price: originalPrice });
+  const r = await api('POST','/api/promos/apply',{code,price:origPrice});
   if(!r.ok){ msg.style.color='var(--red)'; msg.textContent='✗ '+r.msg; return; }
   btn.dataset.price = r.newPrice;
   btn.textContent = `Acheter — ${r.newPrice.toFixed(2)} €`;
-  document.getElementById('price-display-'+id).textContent = r.newPrice.toFixed(2) + ' €';
-  msg.style.color = 'var(--grn)';
-  msg.textContent = r.type==='percent' ? `✓ -${r.discount}% appliqué !` : `✓ -${r.discount}€ appliqué !`;
+  document.getElementById('pd-'+id).textContent = r.newPrice.toFixed(2)+' €';
+  msg.style.color='var(--grn)';
+  msg.textContent = r.type==='percent' ? `✓ -${r.discount}% !` : `✓ -${r.discount}€ !`;
+}
+
+// ── Mes achats ────────────────────────────────────────────────────────────────
+async function loadOrders(){
+  const list = await fetch('/api/orders/'+S.pseudo,{headers:{'x-token':S.apiToken||''}}).then(r=>r.json()).catch(()=>[]);
+  const tbody = document.getElementById('t-orders');
+  const tbody2 = document.getElementById('t-reseller-orders');
+  if(!Array.isArray(list)||!list.length){
+    const row = '<tr><td colspan="4" style="color:var(--mut);text-align:center;padding:20px">Aucun achat</td></tr>';
+    if(tbody) tbody.innerHTML = row;
+    if(tbody2) tbody2.innerHTML = row;
+    return;
+  }
+  const rows = list.map(o=>`<tr>
+    <td>${o.productName}</td>
+    <td><span class="badge badge-a">${o.price.toFixed(2)} €</span></td>
+    <td>${o.originalPrice ? `<span style="color:var(--mut)">${o.originalPrice.toFixed(2)} €</span>` : '—'}</td>
+    <td style="color:var(--mut);font-size:.78rem">${new Date(o.date).toLocaleString('fr-FR')}</td>
+  </tr>`).join('');
+  if(tbody) tbody.innerHTML = list.map(o=>`<tr>
+    <td>${o.productName}</td>
+    <td><span class="badge badge-a">${o.price.toFixed(2)} €</span></td>
+    <td>${o.promo ? `<span class="badge badge-g">${o.promo}</span>` : '—'}</td>
+    <td style="color:var(--mut);font-size:.78rem">${new Date(o.date).toLocaleString('fr-FR')}</td>
+  </tr>`).join('');
+  if(tbody2) tbody2.innerHTML = rows;
 }
 
 // ── Crypto ────────────────────────────────────────────────────────────────────
 async function loadCrypto(){
-  const c = await api('GET', '/api/crypto');
-  document.getElementById('crypto-list').innerHTML = Object.entries(c).map(([k,v]) => `
+  const c = await api('GET','/api/crypto');
+  document.getElementById('crypto-list').innerHTML = Object.entries(c).map(([k,v])=>`
     <div class="crypto-card">
       <div class="c-label">${k}</div>
       <div class="c-addr" onclick="copyAddr('${v}',this)">${v}<br><small style="font-size:.7rem">Cliquer pour copier</small></div>
@@ -415,152 +542,240 @@ async function loadCrypto(){
 }
 
 function copyAddr(addr, el){
-  navigator.clipboard.writeText(addr).then(() => {
-    el.innerHTML = '<span style="color:var(--grn)">✓ Adresse copiée !</span>';
-    setTimeout(() => loadCrypto(), 1500);
+  navigator.clipboard.writeText(addr).then(()=>{
+    el.innerHTML='<span style="color:var(--grn)">✓ Adresse copiée !</span>';
+    setTimeout(()=>loadCrypto(), 1500);
   });
 }
+
+document.addEventListener('input', function(e){
+  if(e.target.id === 'dep-amt'){
+    const amt = parseFloat(e.target.value);
+    const preview = document.getElementById('dep-bonus-preview');
+    if(amt >= 50){
+      const pct = amt >= 100 ? 10 : 5;
+      const bonus = +(amt * pct / 100).toFixed(2);
+      preview.innerHTML = `<span class="bonus-tag">🎁 Bonus +${pct}% = +${bonus}€ offerts !</span>`;
+      preview.style.display = 'block';
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+});
 
 async function requestDeposit(){
   const amt = document.getElementById('dep-amt').value;
   document.getElementById('dep-ok').style.display = 'none';
   document.getElementById('dep-err').style.display = 'none';
-  const r = await api('POST', '/api/deposit/request', { pseudo: S.pseudo, amount: amt });
-  if(!r.ok){
-    document.getElementById('dep-err').textContent = '⚠ ' + r.msg;
-    document.getElementById('dep-err').style.display = 'block';
-    return;
-  }
+  const r = await api('POST','/api/deposit/request',{pseudo:S.pseudo,amount:amt});
+  if(!r.ok){ document.getElementById('dep-err').textContent='⚠ '+r.msg; document.getElementById('dep-err').style.display='block'; return; }
+  let msg = '✓ Dépôt enregistré — en attente de validation';
+  if(r.bonus > 0) msg += ` (+${r.bonus.toFixed(2)}€ de bonus inclus !)`;
+  document.getElementById('dep-ok').textContent = msg;
   document.getElementById('dep-ok').style.display = 'block';
   document.getElementById('dep-amt').value = '';
+  document.getElementById('dep-bonus-preview').style.display = 'none';
 }
 
 // ── Chat ──────────────────────────────────────────────────────────────────────
-socket.on('chat_msg', ({ pseudo, text, ts }) => {
+socket.on('chat_msg',({pseudo,text,ts})=>{
   const box = document.getElementById('chat-box');
-  const d = new Date(ts);
-  const t = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-  box.innerHTML += `<div class="msg"><span class="who">${pseudo}</span>${text}<span class="when">${t}</span></div>`;
-  box.scrollTop = box.scrollHeight;
+  const t = new Date(ts);
+  const time = t.getHours().toString().padStart(2,'0')+':'+t.getMinutes().toString().padStart(2,'0');
+  box.innerHTML+=`<div class="msg"><span class="who">${pseudo}</span>${text}<span class="when">${time}</span></div>`;
+  box.scrollTop=box.scrollHeight;
 });
-
 function sendMsg(){
-  const inp = document.getElementById('chat-inp');
+  const inp=document.getElementById('chat-inp');
   if(!inp.value.trim()) return;
-  socket.emit('chat_msg', { pseudo: S.pseudo, text: inp.value.trim() });
-  inp.value = '';
+  socket.emit('chat_msg',{pseudo:S.pseudo,text:inp.value.trim()});
+  inp.value='';
+}
+
+// ── Revendeur ─────────────────────────────────────────────────────────────────
+function initReseller(){
+  document.getElementById('api-pseudo').textContent = S.pseudo;
+  document.getElementById('api-token').textContent  = S.apiToken || '—';
+  document.getElementById('api-base-url').textContent = window.location.origin;
+  loadOrders();
+}
+
+function copyText(el){
+  navigator.clipboard.writeText(el.textContent.trim()).then(()=>toast('✓ Copié !'));
 }
 
 // ── Admin : Dépôts ────────────────────────────────────────────────────────────
 async function loadPending(){
-  const list = await api('GET', '/api/admin/pending', null, true);
-  document.getElementById('t-pending').innerHTML = list.length
-    ? list.map(u => `<tr>
+  const list = await api('GET','/api/admin/pending',null,true);
+  document.getElementById('t-pending').innerHTML = Array.isArray(list) && list.length
+    ? list.map(u=>`<tr>
         <td><span class="badge">${u.pseudo}</span></td>
-        <td><span class="badge badge-grn">+${u.pending.toFixed(2)} €</span></td>
+        <td>${u.role==='reseller'?'<span class="badge badge-b">REVENDEUR</span>':'<span class="badge badge-g">USER</span>'}</td>
+        <td><span class="badge badge-a">+${u.pending.toFixed(2)} €</span></td>
+        <td>${u.bonus>0?`<span class="bonus-tag">+${u.bonus.toFixed(2)} €</span>`:'—'}</td>
         <td>${u.balance.toFixed(2)} €</td>
-        <td><button class="btn" style="padding:5px 12px;font-size:.78rem" onclick="validateDeposit('${u.pseudo}')">✓ Valider</button></td>
+        <td><button class="btn btn-sm" onclick="validateDeposit('${u.pseudo}')">✓ Valider</button></td>
       </tr>`).join('')
-    : '<tr><td colspan="4" style="color:var(--mut);text-align:center;padding:20px">Aucun dépôt en attente</td></tr>';
+    : '<tr><td colspan="6" style="color:var(--mut);text-align:center;padding:20px">Aucun dépôt en attente</td></tr>';
 }
 
 async function validateDeposit(pseudo){
-  const r = await api('POST', '/api/admin/validate', { pseudo }, true);
+  const r = await api('POST','/api/admin/validate',{pseudo},true);
   if(!r.ok) return toast('Erreur');
-  toast('✓ Dépôt validé pour @' + pseudo);
-  loadPending();
+  toast('✓ Dépôt validé pour @'+pseudo); loadPending();
 }
 
 // ── Admin : Utilisateurs ──────────────────────────────────────────────────────
 async function loadUsers(){
-  const list = await api('GET', '/api/admin/users', null, true);
-  document.getElementById('t-users').innerHTML = list.length
-    ? list.map(u => `<tr>
+  const list = await api('GET','/api/admin/users',null,true);
+  document.getElementById('t-users').innerHTML = Array.isArray(list) && list.length
+    ? list.map(u=>`<tr>
         <td><span class="badge">${u.pseudo}</span></td>
-        <td><span class="badge badge-grn">${u.balance.toFixed(2)} €</span></td>
-        <td>${u.pendingDeposit > 0 ? `<span class="badge badge-acc">+${u.pendingDeposit.toFixed(2)} €</span>` : '—'}</td>
+        <td>${u.role==='reseller'?'<span class="badge badge-b">REVENDEUR</span>':u.role==='admin'?'<span class="badge badge-r">ADMIN</span>':'<span class="badge badge-g">USER</span>'}</td>
+        <td><span class="badge badge-g">${u.balance.toFixed(2)} €</span></td>
+        <td>${u.pendingDeposit>0?`<span class="badge badge-a">+${u.pendingDeposit.toFixed(2)} €</span>`:'—'}</td>
         <td>
           <div class="flex-row" style="flex-wrap:nowrap">
-            <input id="qa-${u.pseudo}" type="number" placeholder="€" style="width:80px;padding:6px 8px;font-size:.78rem">
-            <button class="btn" style="padding:5px 10px;font-size:.75rem" onclick="quickCredit('${u.pseudo}')">+ Créditer</button>
+            <input id="qa-${u.pseudo}" type="number" placeholder="€" style="width:70px;padding:5px 8px;font-size:.78rem">
+            <button class="btn btn-sm" onclick="quickCredit('${u.pseudo}')">+ Crédit</button>
           </div>
         </td>
+        <td>
+          ${u.role==='reseller'
+            ? `<button class="btn btn-red btn-sm" onclick="demote('${u.pseudo}')">Retirer accès</button>`
+            : u.role!=='admin'
+              ? `<button class="btn btn-sm btn-blue" onclick="promote('${u.pseudo}')">Donner accès</button>`
+              : '—'}
+        </td>
       </tr>`).join('')
-    : '<tr><td colspan="4" style="color:var(--mut);text-align:center;padding:20px">Aucun utilisateur</td></tr>';
+    : '<tr><td colspan="6" style="color:var(--mut);text-align:center;padding:20px">Aucun utilisateur</td></tr>';
 }
 
 async function addBalance(){
-  const pseudo = document.getElementById('ab-pseudo').value.trim();
-  const amount = document.getElementById('ab-amt').value;
-  if(!pseudo || !amount) return toast('Pseudo et montant requis');
-  const r = await api('POST', '/api/admin/addbalance', { pseudo, amount }, true);
-  if(!r.ok) return toast('⚠ ' + r.msg);
-  toast('✓ ' + amount + '€ crédité à @' + pseudo);
-  document.getElementById('ab-pseudo').value = '';
-  document.getElementById('ab-amt').value = '';
+  const pseudo=document.getElementById('ab-pseudo').value.trim();
+  const amount=document.getElementById('ab-amt').value;
+  if(!pseudo||!amount) return toast('Pseudo et montant requis');
+  const r=await api('POST','/api/admin/addbalance',{pseudo,amount},true);
+  if(!r.ok) return toast('⚠ '+(r.msg||''));
+  toast('✓ '+amount+'€ crédité à @'+pseudo);
+  document.getElementById('ab-pseudo').value='';
+  document.getElementById('ab-amt').value='';
   loadUsers();
 }
 
 async function quickCredit(pseudo){
-  const amount = document.getElementById('qa-'+pseudo).value;
+  const amount=document.getElementById('qa-'+pseudo)?.value;
   if(!amount) return toast('Montant requis');
-  const r = await api('POST', '/api/admin/addbalance', { pseudo, amount }, true);
-  if(!r.ok) return toast('⚠ ' + r.msg);
-  toast('✓ ' + amount + '€ crédité à @' + pseudo);
-  loadUsers();
+  const r=await api('POST','/api/admin/addbalance',{pseudo,amount},true);
+  if(!r.ok) return toast('⚠ '+(r.msg||''));
+  toast('✓ '+amount+'€ crédité à @'+pseudo); loadUsers();
+}
+
+async function promote(pseudo){
+  if(!confirm('Donner accès revendeur à @'+pseudo+' ?')) return;
+  const r=await api('POST','/api/admin/promote',{pseudo},true);
+  if(!r.ok) return toast('⚠ '+(r.msg||''));
+  toast('✓ @'+pseudo+' est maintenant revendeur'); loadUsers();
+}
+
+async function demote(pseudo){
+  if(!confirm('Retirer accès revendeur à @'+pseudo+' ?')) return;
+  await api('POST','/api/admin/demote',{pseudo},true);
+  toast('Accès retiré'); loadUsers();
+}
+
+// ── Admin : Produits / Stocks ─────────────────────────────────────────────────
+async function loadAdminProducts(){
+  const list = await api('GET','/api/products');
+  document.getElementById('t-admin-products').innerHTML = Array.isArray(list) && list.length
+    ? list.map(p=>`<tr>
+        <td>${p.name}</td>
+        <td>${p.price.toFixed(2)} €</td>
+        <td style="color:var(--blue)">${(p.price*0.9).toFixed(2)} €</td>
+        <td>${p.stock===null?'<span class="badge">∞</span>':p.stock<=0?'<span class="badge badge-r">Rupture</span>':`<span class="badge badge-g">${p.stock}</span>`}</td>
+        <td>
+          <div class="flex-row" style="flex-wrap:nowrap">
+            <input id="st-${p.id}" type="number" placeholder="Stock (vide=∞)" style="width:120px;padding:5px 8px;font-size:.78rem" value="${p.stock!==null?p.stock:''}">
+            <button class="btn btn-sm" onclick="updateStock(${p.id})">MAJ</button>
+          </div>
+        </td>
+        <td><button class="btn btn-red btn-sm" onclick="deleteProduct(${p.id})">🗑</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" style="color:var(--mut);text-align:center;padding:20px">Aucun produit</td></tr>';
+}
+
+async function updateStock(id){
+  const val = document.getElementById('st-'+id).value;
+  const stock = val==='' ? null : parseInt(val);
+  await fetch('/api/products/'+id+'/stock',{method:'PATCH',headers:{'Content-Type':'application/json','x-admin':getAdminPass()},body:JSON.stringify({stock})});
+  toast('✓ Stock mis à jour'); loadAdminProducts();
 }
 
 // ── Admin : Promos ────────────────────────────────────────────────────────────
 async function loadPromos(){
-  const list = await api('GET', '/api/promos', null, true);
-  document.getElementById('t-promos').innerHTML = list.length
-    ? list.map(p => `<tr>
-        <td><span class="badge badge-acc">${p.code}</span></td>
-        <td>${p.type==='percent' ? `-${p.discount}%` : `-${p.discount} €`}</td>
-        <td>${p.uses}${p.maxUses > 0 ? ` / ${p.maxUses}` : ' (illimité)'}</td>
-        <td><button class="btn btn-red" style="padding:4px 10px;font-size:.75rem" onclick="deletePromo('${p.code}')">🗑 Supprimer</button></td>
+  const list = await api('GET','/api/promos',null,true);
+  document.getElementById('t-promos').innerHTML = Array.isArray(list) && list.length
+    ? list.map(p=>`<tr>
+        <td><span class="badge badge-a">${p.code}</span></td>
+        <td>${p.type==='percent'?`-${p.discount}%`:`-${p.discount} €`}</td>
+        <td>${p.uses}${p.maxUses>0?' / '+p.maxUses:' (illimité)'}</td>
+        <td><button class="btn btn-red btn-sm" onclick="deletePromo('${p.code}')">🗑 Supprimer</button></td>
       </tr>`).join('')
-    : '<tr><td colspan="4" style="color:var(--mut);text-align:center;padding:20px">Aucun code promo actif</td></tr>';
+    : '<tr><td colspan="4" style="color:var(--mut);text-align:center;padding:20px">Aucun code actif</td></tr>';
 }
 
 async function createPromo(){
-  const code     = document.getElementById('pr-code').value.trim().toUpperCase();
-  const discount = document.getElementById('pr-discount').value;
-  const type     = document.getElementById('pr-type').value;
-  const maxUses  = document.getElementById('pr-uses').value;
-  if(!code || !discount) return toast('Code et réduction requis');
-  const r = await api('POST', '/api/promos', { code, discount, type, maxUses }, true);
-  if(!r.ok) return toast('⚠ ' + r.msg);
-  toast('✓ Code ' + code + ' créé !');
-  document.getElementById('pr-code').value = '';
-  document.getElementById('pr-discount').value = '';
-  document.getElementById('pr-uses').value = '';
+  const code=document.getElementById('pr-code').value.trim().toUpperCase();
+  const discount=document.getElementById('pr-discount').value;
+  const type=document.getElementById('pr-type').value;
+  const maxUses=document.getElementById('pr-uses').value;
+  if(!code||!discount) return toast('Code et réduction requis');
+  const r=await api('POST','/api/promos',{code,discount,type,maxUses},true);
+  if(!r.ok) return toast('⚠ '+(r.msg||''));
+  toast('✓ Code '+code+' créé !');
+  document.getElementById('pr-code').value='';
+  document.getElementById('pr-discount').value='';
+  document.getElementById('pr-uses').value='';
   loadPromos();
 }
 
 async function deletePromo(code){
-  if(!confirm('Supprimer le code ' + code + ' ?')) return;
-  await fetch('/api/promos/'+code, { method:'DELETE', headers:{'x-admin':'admin123'} });
+  if(!confirm('Supprimer le code '+code+' ?')) return;
+  await fetch('/api/promos/'+code,{method:'DELETE',headers:{'x-admin':getAdminPass()}});
   toast('Code supprimé'); loadPromos();
 }
 
+// ── Admin : Toutes les commandes ──────────────────────────────────────────────
+async function loadAllOrders(){
+  const list = await api('GET','/api/admin/orders',null,true);
+  document.getElementById('t-all-orders').innerHTML = Array.isArray(list) && list.length
+    ? list.slice().reverse().map(o=>`<tr>
+        <td><span class="badge">${o.pseudo}</span></td>
+        <td>${o.role==='reseller'?'<span class="badge badge-b">REVENDEUR</span>':'<span class="badge badge-g">USER</span>'}</td>
+        <td>${o.productName}</td>
+        <td><span class="badge badge-a">${o.price.toFixed(2)} €</span></td>
+        <td style="color:var(--mut)">${o.originalPrice?o.originalPrice.toFixed(2)+' €':'—'}</td>
+        <td>${o.promo?`<span class="badge badge-g">${o.promo}</span>`:'—'}</td>
+        <td style="color:var(--mut);font-size:.78rem">${new Date(o.date).toLocaleString('fr-FR')}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="7" style="color:var(--mut);text-align:center;padding:20px">Aucune commande</td></tr>';
+}
+
 // ── Utils ─────────────────────────────────────────────────────────────────────
+function getAdminPass(){ return 'Crypt0$h0p#2026!'; }
+
 async function api(method, url, body, admin){
-  const opts = {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-  };
-  if(admin) opts.headers['x-admin'] = 'admin123';
-  if(body) opts.body = JSON.stringify(body);
-  return fetch(url, opts).then(r => r.json());
+  const opts={method,headers:{'Content-Type':'application/json'}};
+  if(admin) opts.headers['x-admin']='Crypt0$h0p#2026!';
+  if(body) opts.body=JSON.stringify(body);
+  try{ return await fetch(url,opts).then(r=>r.json()); }
+  catch(e){ return {ok:false,msg:'Erreur réseau'}; }
 }
 
 function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3000);
 }
 </script>
 </body>
