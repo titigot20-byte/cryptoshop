@@ -129,28 +129,40 @@ th{color:var(--mut);font-weight:500;font-size:.74rem;text-transform:uppercase}
       <button class="btn btn-ghost btn-sm" id="btn-add" style="display:none" onclick="toggleAddForm()">+ Ajouter</button>
     </div>
     <div class="add-form" id="add-form">
-      <div class="form-row" style="margin-bottom:12px">
-        <div class="field" style="margin:0"><label class="lbl">Nom</label><input id="p-name" placeholder="Nom du produit"></div>
-        <div class="field" style="margin:0"><label class="lbl">Prix (€)</label><input id="p-price" type="number" placeholder="9.99" step="0.01"></div>
+      <!-- Onglets mode ajout -->
+      <div style="display:flex;gap:4px;margin-bottom:16px;border-bottom:1px solid var(--bor)">
+        <button class="tab active" id="add-tab-single" onclick="switchAddMode('single',this)" style="font-size:.8rem;padding:6px 12px">Ajouter 1 produit</button>
+        <button class="tab" id="add-tab-bulk" onclick="switchAddMode('bulk',this)" style="font-size:.8rem;padding:6px 12px">Ajouter plusieurs</button>
       </div>
-      <div class="form-row" style="margin-bottom:12px">
-        <div class="field" style="margin:0">
-          <label class="lbl">Stock (vide = illimité)</label>
-          <input id="p-stock" type="number" placeholder="Ex: 10 — laisser vide si illimité">
+
+      <!-- Mode 1 produit -->
+      <div id="add-single">
+        <div class="form-row" style="margin-bottom:12px">
+          <div class="field" style="margin:0"><label class="lbl">Nom</label><input id="p-name" placeholder="Nom du produit"></div>
+          <div class="field" style="margin:0"><label class="lbl">Prix (€)</label><input id="p-price" type="number" placeholder="9.99" step="0.01"></div>
         </div>
-        <div class="field" style="margin:0">
-          <label class="lbl">Image URL</label>
-          <input id="p-url" placeholder="https://...">
+        <div class="form-row" style="margin-bottom:12px">
+          <div class="field" style="margin:0"><label class="lbl">Stock (vide = illimité)</label><input id="p-stock" type="number" placeholder="Laisser vide = illimité"></div>
+          <div class="field" style="margin:0"><label class="lbl">Image URL</label><input id="p-url" placeholder="https://..."></div>
         </div>
-      </div>
-      <div class="field">
-        <label class="lbl">Ou uploader une image</label>
-        <div class="flex-row">
+        <div class="field">
+          <label class="lbl">Ou uploader une image</label>
           <input type="file" id="p-file" accept="image/*" onchange="previewImg(this)" style="padding:6px">
+          <div id="img-preview" style="margin-top:8px;display:none"><img id="img-preview-el" style="height:70px;border-radius:4px;border:1px solid var(--bor)"></div>
         </div>
-        <div id="img-preview" style="margin-top:8px;display:none"><img id="img-preview-el" style="height:70px;border-radius:4px;border:1px solid var(--bor)"></div>
+        <button class="btn" onclick="addProduct()">Ajouter le produit</button>
       </div>
-      <button class="btn" onclick="addProduct()">Ajouter le produit</button>
+
+      <!-- Mode multi produits -->
+      <div id="add-bulk" style="display:none">
+        <div style="font-size:.8rem;color:var(--mut);margin-bottom:12px">Ajoute autant de lignes que tu veux, puis clique sur <b style="color:var(--acc)">Tout ajouter</b>.</div>
+        <div id="bulk-rows"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-ghost" onclick="addBulkRow()">+ Ajouter une ligne</button>
+          <button class="btn btn-green" onclick="submitBulk()">✓ Tout ajouter</button>
+        </div>
+        <div id="bulk-result" style="margin-top:8px;font-size:.82rem;display:none"></div>
+      </div>
     </div>
     <div class="grid" id="products-grid"></div>
   </div>
@@ -436,7 +448,72 @@ function renderProducts(list){
 
 socket.on('products_update', renderProducts);
 
-function toggleAddForm(){ document.getElementById('add-form').classList.toggle('open'); }
+function toggleAddForm(){
+  const f = document.getElementById('add-form');
+  f.classList.toggle('open');
+  if(f.classList.contains('open')) initBulkRows();
+}
+
+function switchAddMode(mode, btn){
+  document.querySelectorAll('#add-form .tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('add-single').style.display = mode==='single' ? 'block' : 'none';
+  document.getElementById('add-bulk').style.display   = mode==='bulk'   ? 'block' : 'none';
+  if(mode==='bulk') initBulkRows();
+}
+
+function initBulkRows(){
+  const c = document.getElementById('bulk-rows');
+  if(!c.children.length) addBulkRow();
+}
+
+let bulkCount = 0;
+function addBulkRow(){
+  const id = ++bulkCount;
+  const row = document.createElement('div');
+  row.id = 'bulk-row-'+id;
+  row.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr 2fr auto;gap:8px;margin-bottom:8px;align-items:center';
+  row.innerHTML = `
+    <input placeholder="Nom du produit *" id="br-name-${id}">
+    <input type="number" placeholder="Prix € *" id="br-price-${id}" step="0.01">
+    <input type="number" placeholder="Stock (vide=∞)" id="br-stock-${id}">
+    <input placeholder="Image URL (optionnel)" id="br-img-${id}">
+    <button class="btn btn-red btn-sm" onclick="removeBulkRow(${id})" style="padding:6px 10px">✕</button>`;
+  document.getElementById('bulk-rows').appendChild(row);
+}
+
+function removeBulkRow(id){
+  const row = document.getElementById('bulk-row-'+id);
+  if(row) row.remove();
+}
+
+async function submitBulk(){
+  const rows = document.querySelectorAll('#bulk-rows > div');
+  if(!rows.length) return toast('Aucune ligne');
+  const items = [];
+  let errors = 0;
+  rows.forEach(row => {
+    const id    = row.id.replace('bulk-row-','');
+    const name  = document.getElementById('br-name-'+id)?.value.trim();
+    const price = document.getElementById('br-price-'+id)?.value;
+    const stock = document.getElementById('br-stock-'+id)?.value;
+    const img   = document.getElementById('br-img-'+id)?.value.trim();
+    if(!name || !price){ errors++; return; }
+    items.push({ name, price, stock, img });
+  });
+  if(!items.length) return toast('Aucun produit valide (nom + prix requis)');
+  const r = await api('POST','/api/products/bulk',{items},true);
+  if(!r.ok) return toast('Erreur : '+(r.msg||''));
+  const res = document.getElementById('bulk-result');
+  res.style.display='block';
+  res.style.color = 'var(--grn)';
+  res.textContent = `✓ ${r.added} produit(s) ajouté(s)${errors?' ('+errors+' ligne(s) ignorée(s) — nom/prix manquants)':''}`;
+  setTimeout(()=>res.style.display='none', 4000);
+  document.getElementById('bulk-rows').innerHTML='';
+  bulkCount=0; addBulkRow();
+  loadProducts();
+  if(errors===0){ document.getElementById('add-form').classList.remove('open'); toast('✓ '+r.added+' produits ajoutés !'); }
+}
 
 function previewImg(input){
   if(!input.files[0]) return;
@@ -454,7 +531,7 @@ async function addProduct(){
   if(!name||!price) return toast('Nom et prix requis');
   if(file){
     const fd = new FormData(); fd.append('img', file);
-    const r = await fetch('/api/upload',{method:'POST',headers:{'x-admin': await getAdminPass()},body:fd}).then(x=>x.json());
+    const r = await fetch('/api/upload',{method:'POST',headers:{'x-admin':getAdminPass()},body:fd}).then(x=>x.json());
     if(!r.ok) return toast('Erreur upload');
     img = r.url;
   }
